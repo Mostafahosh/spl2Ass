@@ -31,8 +31,13 @@ public class ExampleMessageSenderService extends MicroService {
         } else {
             Future<String> futureObject = (Future<String>)sendEvent(new ExampleEvent(getName()));
             if (futureObject != null) {
-            	String resolved = futureObject.get(100, TimeUnit.MILLISECONDS);
-            	if (resolved != null) {
+                String resolved = null;
+                try {
+                    resolved = futureObject.get(100, TimeUnit.MILLISECONDS);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                if (resolved != null) {
             		System.out.println("Completed processing the event, its result is \"" + resolved + "\" - success");
             	}
             	else {
