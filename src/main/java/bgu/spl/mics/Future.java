@@ -26,9 +26,11 @@ public class Future<T> {
 	 *
 	 */
 
-	public synchronized T get() throws InterruptedException{
+	public synchronized T get() {
 		while(!isResolve){
-			wait();
+			try {
+				this.wait();
+			} catch (InterruptedException ignored){}
 		}
 		return mSG;
 	}
@@ -64,7 +66,7 @@ public class Future<T> {
 	 * 	       wait for {@code timeout} TimeUnits {@code unit}. If time has
 	 *         elapsed, return null.
 	 */
-	public synchronized T get(long timeout, TimeUnit unit) throws InterruptedException {
+	public synchronized T get(long timeout, TimeUnit unit) {
 //		if (isResolve){return mSG;}
 //		long TimeWait = unit.toMillis(timeout);
 //		wait(TimeWait);
@@ -85,8 +87,10 @@ public class Future<T> {
 			if (remainingTime <= 0) {
 				return null; // Timeout expired, return null
 			}
-
-			wait(remainingTime); // Wait for the remaining time
+			try {
+				wait(remainingTime); // Wait for the remaining time
+			}
+			catch (InterruptedException ignored){}
 		}
 
 		return mSG; // Return the result if resolved
