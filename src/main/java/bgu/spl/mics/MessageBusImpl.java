@@ -7,7 +7,18 @@ package bgu.spl.mics;
  * All other methods and members you add the class must be private.
  */
 public class MessageBusImpl implements MessageBus {
-	
+	private static MessageBusImpl instance;
+	//we should have collection of Queues for Microservices
+	//each MessageType should have queue of which microservices are subscribed
+
+	//singleton DesignPattern
+	public static MessageBusImpl getInstance(){
+		if(instance==null){
+			instance=new MessageBusImpl();
+		}
+		return instance;
+	}
+
 	@Override
 	public <T> void subscribeEvent(Class<? extends Event<T>> type, MicroService m) {
 		// TODO Auto-generated method stub

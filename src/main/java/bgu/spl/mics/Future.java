@@ -1,5 +1,6 @@
 package bgu.spl.mics;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * A Future object represents a promised result - an object that will
@@ -9,7 +10,8 @@ import java.util.concurrent.TimeUnit;
  * No public constructor is allowed except for the empty constructor.
  */
 public class Future<T> {
-	private T mSG;
+	//AtomicReference<T> ??
+	private T rslt;
 	private boolean isResolve = false;
 
 	/**
@@ -26,13 +28,13 @@ public class Future<T> {
 	 *
 	 */
 
-	public synchronized T get() {
+	public  T get() {
 		while(!isResolve){
 			try {
 				this.wait();
 			} catch (InterruptedException ignored){}
 		}
-		return mSG;
+		return rslt;
 	}
 
 
@@ -43,7 +45,7 @@ public class Future<T> {
 	 */
 	//lidar should do the result (if camera sends DetectObject for example)
 	public synchronized void  resolve(T result) {
-		mSG = result;
+		rslt = result;
 		isResolve = true;
 		notifyAll();
 	}
@@ -75,7 +77,7 @@ public class Future<T> {
 //		return null;
 //}
 		if (isResolve) { // If already resolved, return the result immediately
-			return mSG;
+			return rslt;
 		}
 
 		long timeoutMillis = unit.toMillis(timeout); // Convert timeout to milliseconds
@@ -94,6 +96,6 @@ public class Future<T> {
 			catch (InterruptedException ignored){}
 		}
 
-		return mSG; // Return the result if resolved
+		return rslt; // Return the result if resolved
 	}
 }
