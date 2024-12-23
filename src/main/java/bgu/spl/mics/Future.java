@@ -41,6 +41,7 @@ public class Future<T> {
 	/**
 	 * Resolves the result of this Future object.
 	 */
+	//lidar should do the result (if camera sends DetectObject for example)
 	public synchronized void  resolve(T result) {
 		mSG = result;
 		isResolve = true;
