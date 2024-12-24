@@ -1,12 +1,14 @@
 package bgu.spl.mics.application.services;
 
+import bgu.spl.mics.Callback;
 import bgu.spl.mics.MicroService;
+import bgu.spl.mics.application.Messages.Broadcasts.TickBroadcast;
+import bgu.spl.mics.application.objects.DetectedObject;
 import bgu.spl.mics.application.objects.LiDarWorkerTracker;
 
 /**
  * LiDarService is responsible for processing data from the LiDAR sensor and
  * sending TrackedObjectsEvents to the FusionSLAM service.
- * 
  * This service interacts with the LiDarWorkerTracker object to retrieve and process
  * cloud point data and updates the system's StatisticalFolder upon sending its
  * observations.
@@ -32,4 +34,14 @@ public class LiDarService extends MicroService {
     protected void initialize() {
         // TODO Implement this
     }
+
+//    private Callback<TickBroadcast> tickBroadcastCallback = (TickBroadcast message) -> {
+//
+//        ;}
+
+
+    private Callback<DetectedObject> DetectedObjectCallback = (DetectedObject message) -> {
+
+
+        ;}
 }

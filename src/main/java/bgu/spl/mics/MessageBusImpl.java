@@ -1,6 +1,7 @@
 package bgu.spl.mics;
 
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -14,7 +15,7 @@ public class MessageBusImpl implements MessageBus {
 	private static MessageBusImpl instance;
 	//we should have collection of Queues for Microservices
 	//each MessageType should have queue of which microservices are subscribed
-	private ConcurrentHashMap<Message , Queue<MicroService>> QueuesForEvents = new ConcurrentHashMap<>();
+	private ConcurrentHashMap<Message , Queue<MicroService>> QueuesForMessages = new ConcurrentHashMap<>();
 	private ConcurrentHashMap<MicroService , Queue<Message>> QueuesForMicroServices = new ConcurrentHashMap<>();
 
 	//singleton DesignPattern
@@ -27,34 +28,51 @@ public class MessageBusImpl implements MessageBus {
 
 	@Override
 	public <T> void subscribeEvent(Class<? extends Event<T>> type, MicroService m) {
-		// TODO Auto-generated method stub
+
+		Queue<MicroService> MsgType = QueuesForMessages.get(type);
+		MsgType.add(m);
 
 	}
 
 	@Override
 	public void subscribeBroadcast(Class<? extends Broadcast> type, MicroService m) {
-		// TODO Auto-generated method stub
-
+			Queue<MicroService> queueOfBroad = QueuesForMessages.get(type);
+			queueOfBroad.add(m);
 	}
 
 	@Override
 	public <T> void complete(Event<T> e, T result) {
-		// TODO Auto-generated method stub
+		// TODO Auto-generated methgod stub
 
 	}
 
 	@Override
 	public void sendBroadcast(Broadcast b) {
-		// TODO Auto-generated method stub
-
+		for (Map.Entry<MicroService, Queue<Message>> entry : QueuesForMicroServices.entrySet()) {
+			Queue<Message> queue = entry.getValue();
+			queue.add(b);
+		}
 	}
 
 	
 	@Override
 	public <T> Future<T> sendEvent(Event<T> e) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+		if (QueuesForMessages.get(e).size() == 0 ){return null;}
+		Queue<MicroService> currQofEvent = QueuesForMessages.get(e);
+
+		//round-robin
+		MicroService currMicro = currQofEvent.poll(); //should never return null because of the if above
+		currQofEvent.add(currMicro);
+		//
+
+		Queue<Message> currQofMicro = QueuesForMicroServices.get(currMicro);
+		currQofMicro.add(e);
+		//should wait until its event take proccess time ?
+
+//		e.getClass().c
+
+
+	return null;}
 
 	@Override
 	public void register(MicroService m) {

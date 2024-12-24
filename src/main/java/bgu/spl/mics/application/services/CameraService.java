@@ -1,7 +1,9 @@
 package bgu.spl.mics.application.services;
-
+import bgu.spl.mics.Callback;
 import bgu.spl.mics.MicroService;
+import bgu.spl.mics.application.Messages.Broadcasts.TickBroadcast;
 import bgu.spl.mics.application.objects.Camera;
+
 
 /**
  * CameraService is responsible for processing data from the camera and
@@ -31,4 +33,10 @@ public class CameraService extends MicroService {
     protected void initialize() {
         // TODO Implement this
     }
+
+//    private Callback<TickBroadcast> tickBroadcastCallback = (TickBroadcast message) -> {
+//
+//    ;}
+
+
 }
