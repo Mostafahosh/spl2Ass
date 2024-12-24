@@ -1,5 +1,6 @@
 package bgu.spl.mics;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * A Future object represents a promised result - an object that will
@@ -9,50 +10,54 @@ import java.util.concurrent.TimeUnit;
  * No public constructor is allowed except for the empty constructor.
  */
 public class Future<T> {
-	private T mSG;
+	//AtomicReference<T> ??
+	private T rslt;
 	private boolean isResolve = false;
 
 	/**
 	 * This should be the only public constructor in this class.
 	 */
 	public Future(){}
-	
+
 	/**
-     * retrieves the result the Future object holds if it has been resolved.
-     * This is a blocking method! It waits for the computation in case it has
-     * not been completed.
-     * <p>
-     * @return return the result of type T if it is available, if not wait until it is available.
-     * 	       
-     */
-	
-	public synchronized T get() throws InterruptedException{
+	 * retrieves the result the Future object holds if it has been resolved.
+	 * This is a blocking method! It waits for the computation in case it has
+	 * not been completed.
+	 * <p>
+	 * @return return the result of type T if it is available, if not wait until it is available.
+	 *
+	 */
+
+	public synchronized T get() {
 		while(!isResolve){
-			wait();
+			try {
+				this.wait();
+			} catch (InterruptedException ignored){}
 		}
-		return mSG;
+		return rslt;
 	}
 
 
 
-	
+
 	/**
-     * Resolves the result of this Future object.
-     */
+	 * Resolves the result of this Future object.
+	 */
+	//lidar should do the result (if camera sends DetectObject for example)
 	public synchronized void  resolve(T result) {
-		mSG = result;
+		rslt = result;
 		isResolve = true;
 		notifyAll();
 	}
-	
+
 	/**
-     * @return true if this object has been resolved, false otherwise
-     */
+	 * @return true if this object has been resolved, false otherwise
+	 */
 	public boolean isDone() {
 		if(isResolve){return isResolve;}
 		return false;
 	}
-	
+
 	/**
      * retrieves the result the Future object holds if it has been resolved,
      * This method is non-blocking, it has a limited amount of time determined
@@ -64,6 +69,7 @@ public class Future<T> {
      * 	       wait for {@code timeout} TimeUnits {@code unit}. If time has
      *         elapsed, return null.
      */
+
 	public synchronized T get(long timeout, TimeUnit unit) {
 //		if (isResolve){return mSG;}
 //		long TimeWait = unit.toMillis(timeout);
@@ -72,7 +78,7 @@ public class Future<T> {
 //		return null;
 //}
 		if (isResolve) { // If already resolved, return the result immediately
-			return mSG;
+			return rslt;
 		}
 
 		long timeoutMillis = unit.toMillis(timeout); // Convert timeout to milliseconds
@@ -86,9 +92,12 @@ public class Future<T> {
 				return null; // Timeout expired, return null
 			}
 
-			//wait(remainingTime); // Wait for the remaining time
+			try {
+				wait(remainingTime); // Wait for the remaining time
+			}
+			catch (InterruptedException ignored){}
 		}
 
-		return mSG; // Return the result if resolved
+		return rslt; // Return the result if resolved
 	}
 }

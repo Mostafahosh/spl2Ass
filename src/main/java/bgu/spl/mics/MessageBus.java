@@ -1,4 +1,9 @@
 package bgu.spl.mics;
+//each evetType should hold a Q of the microServices how sebscribed to it/
+//for each event we should hold a Q/hashMap thats hold its future
+//we should use concurrent dataStructure - read about it
+//we should use AtomicSyncronuzation
+//each thread(microservice) has it's own object class
 
 /**
  * The message-bus is a shared object used for communication between
