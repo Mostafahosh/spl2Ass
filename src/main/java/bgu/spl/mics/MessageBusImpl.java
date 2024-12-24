@@ -1,5 +1,9 @@
 package bgu.spl.mics;
 
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * The {@link MessageBusImpl class is the implementation of the MessageBus interface.
  * Write your implementation here!
@@ -10,6 +14,8 @@ public class MessageBusImpl implements MessageBus {
 	private static MessageBusImpl instance;
 	//we should have collection of Queues for Microservices
 	//each MessageType should have queue of which microservices are subscribed
+	private ConcurrentHashMap<Message , Queue<MicroService>> QueuesForEvents = new ConcurrentHashMap<>();
+	private ConcurrentHashMap<MicroService , Queue<Message>> QueuesForMicroServices = new ConcurrentHashMap<>();
 
 	//singleton DesignPattern
 	public static MessageBusImpl getInstance(){
@@ -52,20 +58,31 @@ public class MessageBusImpl implements MessageBus {
 
 	@Override
 	public void register(MicroService m) {
-		// TODO Auto-generated method stub
-
+		Queue<Message> QMicro=new LinkedList<>();
+		QueuesForMicroServices.put(m,QMicro);
 	}
 
 	@Override
 	public void unregister(MicroService m) {
-		// TODO Auto-generated method stub
-
+		if(isRegistered(m)){
+			QueuesForMicroServices.remove(m);
+		}
+		//ask lotam about whether the queue should be empty when doing unregister??!!
 	}
 
 	@Override
 	public Message awaitMessage(MicroService m) throws InterruptedException {
-		// TODO Auto-generated method stub
-		return null;
+		if(!isRegistered(m)) throw new IllegalStateException();
+		Queue<Message> currQ=QueuesForMicroServices.get(m);
+		while(currQ.isEmpty()){
+			wait();
+			//where notify should be?
+		}
+		return currQ.remove();
+	}
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////
+	private boolean isRegistered(MicroService m){
+		return QueuesForMicroServices.get(m)!=null;
 	}
 
 	

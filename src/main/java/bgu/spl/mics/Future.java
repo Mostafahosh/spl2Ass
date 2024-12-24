@@ -28,7 +28,7 @@ public class Future<T> {
 	 *
 	 */
 
-	public  T get() {
+	public synchronized T get() {
 		while(!isResolve){
 			try {
 				this.wait();
