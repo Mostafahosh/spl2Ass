@@ -1,6 +1,8 @@
 package bgu.spl.mics.application.services;
 import bgu.spl.mics.Callback;
 import bgu.spl.mics.MicroService;
+import bgu.spl.mics.application.Messages.Broadcasts.CrashedBroadcast;
+import bgu.spl.mics.application.Messages.Broadcasts.TerminatedBroadcast;
 import bgu.spl.mics.application.Messages.Broadcasts.TickBroadcast;
 import bgu.spl.mics.application.objects.Camera;
 
@@ -13,6 +15,8 @@ import bgu.spl.mics.application.objects.Camera;
  * the system's StatisticalFolder upon sending its observations.
  */
 public class CameraService extends MicroService {
+    private Camera camera;
+    private int tick;
 
     /**
      * Constructor for CameraService.
@@ -20,8 +24,10 @@ public class CameraService extends MicroService {
      * @param camera The Camera object that this service will use to detect objects.
      */
     public CameraService(Camera camera) {
-        super("Change_This_Name");
-        // TODO Implement this
+        super("camera " + camera.get_id());
+        this.camera = camera;
+        this.tick = 0;
+
     }
 
     /**
@@ -31,12 +37,21 @@ public class CameraService extends MicroService {
      */
     @Override
     protected void initialize() {
-        // TODO Implement this
+    subscribeBroadcast(TickBroadcast.class, callback ->{
+
+            }
+    );
+    subscribeBroadcast(TerminatedBroadcast.class, callback ->{
+
+    }
+    );
+    subscribeBroadcast(CrashedBroadcast.class, callback ->{
+
+    }
+    );
     }
 
-//    private Callback<TickBroadcast> tickBroadcastCallback = (TickBroadcast message) -> {
+//    public void updatSfolder(){
 //
-//    ;}
-
-
+//    }
 }

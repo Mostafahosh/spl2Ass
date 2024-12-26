@@ -40,8 +40,8 @@ public class LiDarService extends MicroService {
 //        ;}
 
 
-    private Callback<DetectedObject> DetectedObjectCallback = (DetectedObject message) -> {
-
-
-        ;}
+//    private Callback<DetectedObject> DetectedObjectCallback = (DetectedObject message) -> {
+//
+//
+//        return  ;}
 }
