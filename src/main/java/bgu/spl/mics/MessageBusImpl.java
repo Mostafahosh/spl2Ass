@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * All other methods and members you add the class must be private.
  */
 public class MessageBusImpl implements MessageBus {
+	//SingletonHolder?? because maybe 2 threads will be in line if(instance==null){...}!
 	private static MessageBusImpl instance;
 	//we should have collection of Queues for Microservices
 	//each MessageType should have queue of which microservices are subscribed
@@ -89,6 +90,10 @@ public class MessageBusImpl implements MessageBus {
 	public void unregister(MicroService m) {
 		if(isRegistered(m)){
 			microMap.remove(m);
+		}
+		for (Map.Entry<Message, Queue<MicroService>> entry : msgMap.entrySet()) {
+			Queue<MicroService> queue = entry.getValue();
+			queue.remove(m);
 		}
 		//ask lotam about whether the queue should be empty when doing unregister??!!
 	}

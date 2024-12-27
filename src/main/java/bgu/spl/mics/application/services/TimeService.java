@@ -1,6 +1,7 @@
 package bgu.spl.mics.application.services;
 
 import bgu.spl.mics.MicroService;
+import bgu.spl.mics.application.Messages.Broadcasts.TerminatedBroadcast;
 import bgu.spl.mics.application.Messages.Broadcasts.TickBroadcast;
 
 /**
@@ -8,9 +9,9 @@ import bgu.spl.mics.application.Messages.Broadcasts.TickBroadcast;
  * at regular intervals and controlling the simulation's duration.
  */
 public class TimeService extends MicroService {
-      private int TickTime;
-      private int Duration;
-      int counter = 0;
+      private int tickTime;
+      private int duration;
+
 
     /**
      * Constructor for TimeService.
@@ -20,8 +21,8 @@ public class TimeService extends MicroService {
      */
     public TimeService(int TickTime, int Duration) {
         super("tick " + TickTime);
-       this.TickTime = TickTime;
-        this.Duration = Duration;
+       this.tickTime = TickTime;
+        this.duration = Duration;
     }
 
     /**
@@ -30,6 +31,12 @@ public class TimeService extends MicroService {
      */
     @Override
     protected void initialize() {
-
+        int clock = tickTime;
+        while(clock<=this.duration*tickTime){
+            sendBroadcast(new TickBroadcast());
+            clock=clock+tickTime;
+        }
+        terminate();
+        sendBroadcast(new TerminatedBroadcast());
     }
 }

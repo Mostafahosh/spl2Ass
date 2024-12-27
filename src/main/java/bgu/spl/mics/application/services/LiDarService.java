@@ -3,6 +3,8 @@ package bgu.spl.mics.application.services;
 import bgu.spl.mics.Callback;
 import bgu.spl.mics.Event;
 import bgu.spl.mics.MicroService;
+import bgu.spl.mics.application.Messages.Broadcasts.CrashedBroadcast;
+import bgu.spl.mics.application.Messages.Broadcasts.TerminatedBroadcast;
 import bgu.spl.mics.application.Messages.Broadcasts.TickBroadcast;
 import bgu.spl.mics.application.objects.DetectedObject;
 import bgu.spl.mics.application.objects.LiDarWorkerTracker;
@@ -18,6 +20,7 @@ import bgu.spl.mics.application.Messages.Events.DetectObjectEvent;
 public class LiDarService extends MicroService {
 
     LiDarWorkerTracker lidar;
+    private int tick;
 
     /**
      * Constructor for LiDarService.
@@ -27,6 +30,7 @@ public class LiDarService extends MicroService {
     public LiDarService(LiDarWorkerTracker LiDarWorkerTracker) {
         super("Lidar" + LiDarWorkerTracker.getId());
         this.lidar = LiDarWorkerTracker;
+        tick=0;
     }
 
     /**
@@ -39,6 +43,20 @@ public class LiDarService extends MicroService {
         subscribeEvent(DetectObjectEvent.class , callback ->{
 
         });
+        subscribeBroadcast(TickBroadcast.class, callback ->{
+                    tick++;
+                    //sending TrackedObjectsEvent
+                }
+        );
+        subscribeBroadcast(TerminatedBroadcast.class, callback ->{
+                    terminate();
+                }
+        );
+
+        subscribeBroadcast(CrashedBroadcast.class, callback ->{
+                    //error
+                }
+        );
     }
 
 

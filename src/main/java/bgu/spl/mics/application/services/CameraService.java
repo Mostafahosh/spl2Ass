@@ -4,6 +4,7 @@ import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.Messages.Broadcasts.CrashedBroadcast;
 import bgu.spl.mics.application.Messages.Broadcasts.TerminatedBroadcast;
 import bgu.spl.mics.application.Messages.Broadcasts.TickBroadcast;
+import bgu.spl.mics.application.Messages.Events.DetectObjectEvent;
 import bgu.spl.mics.application.objects.Camera;
 
 
@@ -38,16 +39,17 @@ public class CameraService extends MicroService {
     @Override
     protected void initialize() {
     subscribeBroadcast(TickBroadcast.class, callback ->{
-
+                tick++;
+                //sending detectedObjectsEvent
             }
     );
     subscribeBroadcast(TerminatedBroadcast.class, callback ->{
-
+        terminate();
     }
     );
 
     subscribeBroadcast(CrashedBroadcast.class, callback ->{
-
+        //error
     }
     );
 
