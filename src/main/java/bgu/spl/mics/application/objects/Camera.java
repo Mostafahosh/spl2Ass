@@ -24,4 +24,5 @@ public class Camera {
 
     public int get_id(){return id;}
     public void add(StampedDetectedObjects obj){list.add(obj);}
+    public StampedDetectedObjects get(int index){return list.get(index);}
 }

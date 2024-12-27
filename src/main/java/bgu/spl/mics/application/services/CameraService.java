@@ -45,10 +45,13 @@ public class CameraService extends MicroService {
 
     }
     );
+
     subscribeBroadcast(CrashedBroadcast.class, callback ->{
 
     }
     );
+
+
     }
 
 //    public void updatSfolder(){
