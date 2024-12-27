@@ -17,7 +17,7 @@ public class MessageBusImpl implements MessageBus {
 	//each MessageType should have queue of which microservices are subscribed
 	private ConcurrentHashMap<Message, Queue<MicroService>> msgMap = new ConcurrentHashMap<>();
 	private ConcurrentHashMap<MicroService , Queue<Message>> microMap = new ConcurrentHashMap<>();//must be Blocking queue
-	private ConcurrentHashMap<Message , Future> eventMap = new ConcurrentHashMap<>();
+	private ConcurrentHashMap<Event , Future> event_Future = new ConcurrentHashMap<>();
 
 
 	//singleton DesignPattern
@@ -43,7 +43,7 @@ public class MessageBusImpl implements MessageBus {
 
 	@Override
 	public <T> void complete(Event<T> e, T result) {
-		Future<T> future = eventMap.get(e);
+		Future<T> future = event_Future.get(e);
 		future.resolve(result);
 	}
 
@@ -65,7 +65,7 @@ public class MessageBusImpl implements MessageBus {
 		Queue<MicroService> currQofEvent = msgMap.get(e);
 
 		if (currQofEvent == null){return null;}
-		eventMap.put(e,future);
+		event_Future.put(e,future);
 
 		//round-robin
 		MicroService currMicro = currQofEvent.poll();//should never return null because of the if above

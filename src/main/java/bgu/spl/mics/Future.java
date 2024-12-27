@@ -28,11 +28,14 @@ public class Future<T> {
 	 *
 	 */
 
-	public synchronized T get() {
-		while(!isResolve){
-			try {
-				this.wait();
-			} catch (InterruptedException ignored){}
+	public T get() {
+		while(!isResolve) {
+			synchronized (this) {
+				try {
+					this.wait();
+				} catch (InterruptedException ignored) {
+				}
+			}
 		}
 		return rslt;
 	}
@@ -44,7 +47,7 @@ public class Future<T> {
 	 * Resolves the result of this Future object.
 	 */
 	//lidar should do the result (if camera sends DetectObject for example)
-	public synchronized void  resolve(T result) {
+	public void  resolve(T result) {
 		rslt = result;
 		isResolve = true;
 		notifyAll();

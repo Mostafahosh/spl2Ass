@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>
  */
 public abstract class MicroService implements Runnable {
-    private MessageBusImpl messageBus = MessageBusImpl.getInstance();
+    private final MessageBusImpl messageBus = MessageBusImpl.getInstance();
     private ConcurrentHashMap<String,Callback> eventMapCallback;
     private ConcurrentHashMap<String , Callback> broadMapCallback;
     private boolean terminated = false;
