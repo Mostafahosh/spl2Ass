@@ -22,4 +22,7 @@ public class StampedDetectedObjects {
     public void addDetectedObject(DetectedObject obj) {detectedObjects.add(obj);}
     public DetectedObject getDetectedObject(int id) {return detectedObjects.get(id);}
 
+    public List<DetectedObject> getDetectedObjects() {
+        return detectedObjects;
+    }
 }

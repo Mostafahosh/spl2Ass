@@ -1,6 +1,12 @@
 package bgu.spl.mics;
 
 
+import bgu.spl.mics.application.Messages.Broadcasts.TickBroadcast;
+import bgu.spl.mics.application.Messages.Events.DetectObjectEvent;
+import bgu.spl.mics.application.Messages.Events.TrackedObjectsEvent;
+import bgu.spl.mics.application.objects.StatisticalFolder;
+import bgu.spl.mics.application.objects.TrackedObject;
+
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -23,6 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>
  */
 public abstract class MicroService implements Runnable {
+    private final StatisticalFolder statisticalFolder =StatisticalFolder.getInstance();
     private final MessageBusImpl messageBus = MessageBusImpl.getInstance();
     private ConcurrentHashMap<String,Callback> eventMapCallback;
     private ConcurrentHashMap<String , Callback> broadMapCallback;
@@ -103,7 +110,11 @@ public abstract class MicroService implements Runnable {
      * 	       			null in case no micro-service has subscribed to {@code e.getClass()}.
      */
     protected final <T> Future<T> sendEvent(Event<T> e) {
+        if(e.getClass() == DetectObjectEvent.class){statisticalFolder.incrementNumberOfDetectedObjects(1);}
+        else if(e.getClass() == TrackedObjectsEvent.class){statisticalFolder.incrementNumberOfTrackedObjects(((TrackedObjectsEvent) e).getTrackedObjects().size());}
         return messageBus.sendEvent(e);
+
+
     }
 
     /**
@@ -113,6 +124,9 @@ public abstract class MicroService implements Runnable {
      * @param b The broadcast message to send
      */
     protected final void sendBroadcast(Broadcast b) {
+        if(b.getClass()== TickBroadcast.class){
+            statisticalFolder.incrementSystemRuntime();
+        }
         messageBus.sendBroadcast(b);
     }
 

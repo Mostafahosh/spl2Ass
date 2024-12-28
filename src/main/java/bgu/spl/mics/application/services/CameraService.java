@@ -6,6 +6,9 @@ import bgu.spl.mics.application.Messages.Broadcasts.TerminatedBroadcast;
 import bgu.spl.mics.application.Messages.Broadcasts.TickBroadcast;
 import bgu.spl.mics.application.Messages.Events.DetectObjectEvent;
 import bgu.spl.mics.application.objects.Camera;
+import bgu.spl.mics.application.objects.StatisticalFolder;
+
+import java.util.List;
 
 
 /**
@@ -27,7 +30,7 @@ public class CameraService extends MicroService {
     public CameraService(Camera camera) {
         super("camera " + camera.get_id());
         this.camera = camera;
-        this.tick = 0;
+        this.tick = 1;
 
     }
 
@@ -39,10 +42,16 @@ public class CameraService extends MicroService {
     @Override
     protected void initialize() {
     subscribeBroadcast(TickBroadcast.class, callback ->{
+//                List<DetectObjectEvent> list = camera.detectObjects(tick);
+//                for(DetectObjectEvent e:list){
+//                    sendEvent(e);
+//
+//                }
                 tick++;
-                //sending detectedObjectsEvent
             }
+                //sending detectedObjectsEvent
     );
+
     subscribeBroadcast(TerminatedBroadcast.class, callback ->{
         terminate();
     }
@@ -56,7 +65,4 @@ public class CameraService extends MicroService {
 
     }
 
-//    public void updatSfolder(){
-//
-//    }
 }

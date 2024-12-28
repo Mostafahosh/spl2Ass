@@ -48,7 +48,7 @@ public class LiDarDataBase {
                 Gson gson = new Gson();
                 Type listType = new TypeToken<List<LidarJsonEntry>>(){}.getType();
 
-// Parse the JSON string into a list of LidarJsonEntry objects
+                // Parse the JSON string into a list of LidarJsonEntry objects
                 List<LidarJsonEntry> lidarJsonEntries = gson.fromJson(filePath, listType);
 
 
@@ -67,8 +67,9 @@ public class LiDarDataBase {
                         stampedPoint.addCloudPoint(cloudPoint);
                         System.out.println("______________________");
                     }
+
                 }
-                }
+            }
 
 
 
@@ -77,6 +78,15 @@ public class LiDarDataBase {
             }
         }
         return instance;
+    }
+
+    public static StampedCloudPoints getObject(String id) {
+        for (StampedCloudPoints obj : list) {
+            if (obj.getId().equals(id)) {
+                return obj;
+            }
+        }
+        return null;
     }
 
            }

@@ -17,22 +17,27 @@ public class LiDarWorkerTracker {
     private int id;
     private int frequency;
     private STATUS status;
-    private List<TrackedObject> list;
+    private List<TrackedObject> lastTrackedObjects;
 
     LiDarWorkerTracker(int id, int frequency) {
         this.id = id;
         this.frequency = frequency;
         status = STATUS.UP;
-        list = Collections.synchronizedList(new ArrayList<>());
+        lastTrackedObjects = Collections.synchronizedList(new ArrayList<>());
     }
 
+
+
     public int getId() {return id;}
-    public void add(TrackedObject obj){list.add(obj);}
+    public void add(TrackedObject obj){lastTrackedObjects.add(obj);}
     public STATUS getStatus() {return status;}
     public void setStatus(STATUS status) {this.status = status;}
     public int getFrequency() {return frequency;}
-    public void clearList() {list.clear();}
-    public void remove(TrackedObject obj) {list.remove(obj);}
-    public void remove(int index) {list.remove(index);}
+    public void clearList() {lastTrackedObjects.clear();}
+    public void remove(TrackedObject obj) {lastTrackedObjects.remove(obj);}
+    public void remove(int index) {lastTrackedObjects.remove(index);}
+    public List<TrackedObject> getList() {
+        return lastTrackedObjects;
+    }
 
 }

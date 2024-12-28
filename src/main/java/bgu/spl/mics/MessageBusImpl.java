@@ -13,6 +13,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class MessageBusImpl implements MessageBus {
 	//SingletonHolder?? because maybe 2 threads will be in line if(instance==null){...}!
+	//we need to use concurrentLinkedQueue
+
 	private static MessageBusImpl instance;
 	//we should have collection of Queues for Microservices
 	//each MessageType should have queue of which microservices are subscribed
@@ -21,7 +23,7 @@ public class MessageBusImpl implements MessageBus {
 	private ConcurrentHashMap<Event , Future> event_Future = new ConcurrentHashMap<>();
 
 
-	//singleton DesignPattern
+	//singleton DesignPattern - need to be changed
 	public static MessageBusImpl getInstance(){
 		if(instance==null){
 			instance=new MessageBusImpl();

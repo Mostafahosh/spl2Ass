@@ -23,4 +23,18 @@ public class GPSIMU {
     public void add(Pose obj){list.add(obj);}
     public STATUS getStatus() {return status;}
     public void setStatus(STATUS status) {this.status = status;}
+
+
+    public Pose findPose (int time){
+        Pose pose;
+        for (int i = 0; i < list.size(); i++) {
+            if(time == list.get(i).getTime()){
+                pose = list.get(i);
+                return pose;
+            }
+        }
+        return null; //should never return null
+    }
+
+
 }

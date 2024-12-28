@@ -18,7 +18,7 @@ public class TrackedObject {
         this.id = id;
         this.time = time;
         this.description = description;
-        coordinates = Collections.synchronizedList(new ArrayList<>());
+        this.coordinates = Collections.synchronizedList(new ArrayList<>());
     }
 
     public String getId() {return id;}

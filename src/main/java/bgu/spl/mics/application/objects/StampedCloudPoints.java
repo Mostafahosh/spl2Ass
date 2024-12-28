@@ -21,6 +21,8 @@ public class StampedCloudPoints {
 
 
     public int getTime() {return time;}
+    public String getId() {return id;}
+    public List<CloudPoint> getCloudPoints() {return cloudPoints;}
     public void addCloudPoint(CloudPoint point) {cloudPoints.add(point);}
     public CloudPoint getCloudPoint(int id) {return cloudPoints.get(id);}
     public String toString(){
