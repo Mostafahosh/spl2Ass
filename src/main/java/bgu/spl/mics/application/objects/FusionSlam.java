@@ -31,9 +31,10 @@ public class FusionSlam {
     public void addPose(Pose pose){poses.add(pose);}
     public List<LandMark> getLandMarks(){return landmarks;}
     public List<Pose> getPoses(){return poses;}
+    public Pose getPose(int tick){for (Pose pose : poses) {if(pose.getTime() == tick){return pose;}}return null;}
 
 
-    public void mathCalc(double x , double y , Pose pose){
+    public CloudPoint mathCalc(double x , double y , Pose pose){
         double xLocal = x;
         double yLocal = y;
         double deltaDegree = pose.getYaw();
@@ -60,6 +61,9 @@ public class FusionSlam {
         System.out.println("xGlobal = " + xGlobal);
         yGlobal = yRotated + yRobot;
         System.out.println("yGlobal = " + yGlobal);
+
+        CloudPoint globalPoint = new CloudPoint(xGlobal, yGlobal);
+        return globalPoint;
 
 
 

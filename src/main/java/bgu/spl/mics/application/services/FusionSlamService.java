@@ -7,10 +7,9 @@ import bgu.spl.mics.application.Messages.Broadcasts.TickBroadcast;
 import bgu.spl.mics.application.Messages.Events.DetectObjectEvent;
 import bgu.spl.mics.application.Messages.Events.PoseEvent;
 import bgu.spl.mics.application.Messages.Events.TrackedObjectsEvent;
-import bgu.spl.mics.application.objects.FusionSlam;
-import bgu.spl.mics.application.objects.LandMark;
-import bgu.spl.mics.application.objects.TrackedObject;
+import bgu.spl.mics.application.objects.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -49,15 +48,32 @@ public class FusionSlamService extends MicroService {
         );
 
         subscribeEvent(TrackedObjectsEvent.class, callback ->{
-                List<TrackedObject> trackedObjects= callback.getTrackedObjects();
+                List<TrackedObject> trackedObjects = callback.getTrackedObjects();
+                Pose pose = fusionSlam.getPose(tick);
                 for(TrackedObject o:trackedObjects){
-                    //create landmark or update
+
+                    List<CloudPoint> globalPointsList = new ArrayList<>();
+
+                    for (CloudPoint localpoint : o.getCoordinates()){
+                        double x = localpoint.getX();
+                        double y = localpoint.getY();
+
+
+                        CloudPoint globalPoint = fusionSlam.mathCalc(x,y,pose);
+                        globalPointsList.add(globalPoint);
+
+                    }
+
+                    LandMark landMark = new LandMark(o.getId() , o.getDescription() , globalPointsList);
+                    fusionSlam.addLandMark(landMark);
                 }
             }
         );
 
         subscribeEvent(PoseEvent.class, callback ->{
-
+            //should be syyncronized
+            Pose pose = callback.getPose();
+            fusionSlam.addPose(pose);
             }
         );
 

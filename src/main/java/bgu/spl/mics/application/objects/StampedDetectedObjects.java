@@ -25,4 +25,8 @@ public class StampedDetectedObjects {
     public List<DetectedObject> getDetectedObjects() {
         return detectedObjects;
     }
+
+    public String toString(){
+        return "detected objects at time " + time + " and objects " + detectedObjects;
+    }
 }

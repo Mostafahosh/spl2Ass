@@ -11,7 +11,7 @@ public class LandMark {
     private String description;
     private List<CloudPoint> list;
 
-    LandMark(String id, String description, List<CloudPoint> list) {
+    public LandMark(String id, String description, List<CloudPoint> list) {
         this.id = id;
         this.description = description;
         this.list = list;
@@ -20,6 +20,7 @@ public class LandMark {
     public String getId() {return id;}
     public String getDescription() {return description;}
     public List<CloudPoint> getList() {return list;}
+    public void setList(List<CloudPoint> list) {this.list = list;}
 
 
 }

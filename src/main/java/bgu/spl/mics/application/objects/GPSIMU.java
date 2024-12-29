@@ -1,5 +1,11 @@
 package bgu.spl.mics.application.objects;
 
+import com.google.gson.*;
+import com.google.gson.reflect.TypeToken;
+import java.io.FileReader;
+import java.io.IOException;
+import java.lang.reflect.Type;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -8,12 +14,13 @@ import java.util.List;
  * Represents the robot's GPS and IMU system.
  * Provides information about the robot's position and movement.
  */
+
 public class GPSIMU {
     private int currentTick;
     private STATUS status;
     private List<Pose> list;
 
-    GPSIMU(int currentTick) {
+    public GPSIMU(int currentTick) {
         this.currentTick = currentTick;
         this.status = STATUS.UP;
         this.list = Collections.synchronizedList(new ArrayList<>());
@@ -36,5 +43,22 @@ public class GPSIMU {
         return null; //should never return null
     }
 
+    public void parseJson(){
+                Gson gson = new Gson();
+
+        String filePath = "example input/pose_data.json"; // Replace with the actual file path
+        try (FileReader reader = new FileReader(filePath)){
+            Type lst = new TypeToken<ArrayList<Pose>>(){}.getType();
+            ArrayList<Pose> poses = gson.fromJson(reader, lst);
+
+            for (Pose pose : poses) {
+                System.out.println(pose);
+                list.add(pose);
+            }
+
+        }    catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
 }

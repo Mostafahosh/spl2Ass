@@ -2,7 +2,7 @@ package bgu.spl.mics.application.objects;
 
 import java.util.List;
 
-public class LidarJsonEntry {
+public class LidarJson {
     private int time;
     private String id;
     private List<List<Double>> cloudPoints;
@@ -30,6 +30,10 @@ public class LidarJsonEntry {
 
     public void setCloudPoints(List<List<Double>> cloudPoints) {
         this.cloudPoints = cloudPoints;
+    }
+
+    public String toString(){
+        return "obj detected at time " + time + " with id " + id + " and cloud points " + cloudPoints;
     }
 }
 

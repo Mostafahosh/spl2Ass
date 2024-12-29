@@ -1,8 +1,15 @@
 package bgu.spl.mics.application;
 
-import bgu.spl.mics.application.objects.FusionSlam;
-import bgu.spl.mics.application.objects.LiDarDataBase;
-import bgu.spl.mics.application.objects.Pose;
+import bgu.spl.mics.application.jsonTojavFiles.configFile;
+import bgu.spl.mics.application.objects.*;
+import com.google.gson.Gson;
+import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
+import java.io.FileReader;
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The main entry point for the GurionRock Pro Max Ultra Over 9000 simulation.
@@ -24,6 +31,24 @@ public class GurionRockRunner {
         System.out.println("Hello World!");
 
         // TODO: Parse configuration file.
+//        Gson gson = new Gson();
+//        try (FileReader reader = new FileReader("example input/configuration_file.json")) {
+//            // Define the type for the list of employees
+//            Type type = new TypeToken<configFile>()
+//            {}.getType();
+//            // Deserialize JSON to list of employees
+//            configFile file = gson.fromJson(reader, configFile.class);
+//             //Use the employee data
+//            for (Camera c: file.getCameras().getCamerasConfigurations()) {
+//                System.out.println( c.get_frequency());
+//            }
+//            System.out.println(file.getTickTime());
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//        JsonParser parser = new JsonParser();
+//        try (FileReader fileReader = new FileReader("example input/cof")) {
+
         // TODO: Initialize system components and services.
         // TODO: Start the simulation.
 
@@ -52,5 +77,18 @@ public class GurionRockRunner {
         saher.mathCalc(-2.5,-3.3,pose);
 
 
+
+    Camera cameratst = new Camera(3,32);
+    cameratst.ParseCameraData();
+
+//        List<Pose> lst = new ArrayList<>();
+//        GPSIMU GI = new GPSIMU(6);
+//        GI.parseJson();
+
     }
+
+
+
+
+
 }

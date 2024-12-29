@@ -16,4 +16,7 @@ public class DetectedObject {
 
     public String getId() {return id;}
     public String getDescription() {return description;}
+
+    public String toString() {return description;}
+
 }

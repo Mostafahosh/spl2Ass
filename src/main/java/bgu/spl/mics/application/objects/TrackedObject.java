@@ -35,4 +35,5 @@ public class TrackedObject {
     }
 
     public void addCoordinate(CloudPoint point) {coordinates.add(point);}
+    public List<CloudPoint> getCoordinates() {return coordinates;}
 }

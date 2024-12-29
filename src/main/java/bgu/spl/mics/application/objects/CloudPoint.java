@@ -20,6 +20,6 @@ public class CloudPoint {
     public void setY(int y) {this.y = y;}
 
     public String toString() {
-        return "CloudPoint{" + "x=" + x + ", y=" + y + '}';
+        return "{" + "x=" + x + ", y=" + y + '}';
     }
 }
