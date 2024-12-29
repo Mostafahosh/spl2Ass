@@ -1,6 +1,5 @@
 package bgu.spl.mics.application;
 
-import bgu.spl.mics.application.jsonTojavFiles.configFile;
 import bgu.spl.mics.application.objects.*;
 import com.google.gson.Gson;
 import com.google.gson.JsonParser;
