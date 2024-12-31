@@ -9,25 +9,23 @@ import java.util.List;
 
 public class DetectObjectEvent implements Event<DetectedObject> {
 
+    /////fields/////
     private StampedDetectedObjects obj;
     private String id;
-    private List<DetectedObject> list;
-    private int time;
+    private int time; //maybe not necessary
+    /////////////////
 
     public DetectObjectEvent(StampedDetectedObjects obj , int time) {
         this.obj = obj;
-        this.list = obj.getDetectedObjects();
         this.time = time;
     }
 
-public int getTime() {return 5;}
-    public List<DetectedObject> getList() {return list;}
+public int getTime() {return time;}
+
     public String getId() {return id;}
-    public StampedDetectedObjects getObj() {return obj;}
+    public StampedDetectedObjects getObj(int time) {return obj;}
+    //input time just to make it more clear when calling the function
 
 
-//    public DetectedObject getObj(String id , String description , int time) {
-//
-//    }
 
 }

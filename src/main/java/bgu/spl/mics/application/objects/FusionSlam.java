@@ -31,6 +31,21 @@ public class FusionSlam {
     public void addPose(Pose pose){poses.add(pose);}
     public List<LandMark> getLandMarks(){return landmarks;}
     public List<Pose> getPoses(){return poses;}
+    public List<TrackedObject> getObjects(){return trackedObjects;}
+    public boolean isObjectAvailable(TrackedObject instance){
+        for (LandMark obj : landmarks){
+            if (obj.getId().equals(instance.getId())){return true;}
+        }
+        return false;
+    }
+
+    public LandMark getLandMArk(String id){
+        for (LandMark LM : landmarks){
+            if (LM.getId().equals(id)){return LM;}
+        }
+        return null;
+    }
+    public void addTrackedObj(TrackedObject obj){trackedObjects.add(obj);}
     public Pose getPose(int tick){for (Pose pose : poses) {if(pose.getTime() == tick){return pose;}}return null;}
 
 

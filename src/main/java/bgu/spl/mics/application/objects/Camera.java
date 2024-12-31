@@ -53,9 +53,14 @@ public class Camera {
         list.add(obj);
     }
 
-    public StampedDetectedObjects get(int index) {
-        return list.get(index);
+    public StampedDetectedObjects get(int time) {
+        for (StampedDetectedObjects  obj : list){
+            if (obj.getTime() == time){return obj;}
+        }
+        return null;
     }
+
+    public List<StampedDetectedObjects> getList(){return list;}
 
     public int numOfObjects() {
         return list.size();
@@ -231,7 +236,7 @@ public class Camera {
 
 
         Gson gson = new Gson();
-        String filePath = "example_input_2/camera_data.json";
+        String filePath = "example_input_with_error/camera_data.json";
 
         try (FileReader reader = new FileReader(filePath)) {
             // Parse the raw JSON into a Map of JsonElement

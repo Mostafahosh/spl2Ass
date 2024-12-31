@@ -43,7 +43,7 @@ public class GPSIMU {
         return null; //should never return null
     }
 
-    public void parseJson(){
+    public void parsePoseData(){
                 Gson gson = new Gson();
 
         String filePath = "example input/pose_data.json"; // Replace with the actual file path

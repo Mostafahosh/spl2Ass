@@ -40,4 +40,21 @@ public class LiDarWorkerTracker {
         return lastTrackedObjects;
     }
 
-}
+    public boolean isObjectDetected(String id){
+        for (TrackedObject obj : lastTrackedObjects){
+            if (obj.getId() == id){return true;}
+        }
+        return false;
+    }
+
+    public void toStringL(){
+        System.out.println("lidar: " + id);
+        }
+
+
+
+
+
+    }
+
+

@@ -10,8 +10,8 @@ import java.util.List;
  */
 public class StampedCloudPoints {
     private int time;
-    private List<CloudPoint> cloudPoints;
     private String id;
+    private List<CloudPoint> cloudPoints;
 
     public StampedCloudPoints(int time , String id) {
         this.time = time;
@@ -25,7 +25,14 @@ public class StampedCloudPoints {
     public List<CloudPoint> getCloudPoints() {return cloudPoints;}
     public void addCloudPoint(CloudPoint point) {cloudPoints.add(point);}
     public CloudPoint getCloudPoint(int id) {return cloudPoints.get(id);}
-    public String toString(){
-        return "obj detected at time " + time + " with id " + id + " and cloud points " + cloudPoints;
+    public void toStringStampedPoint(){
+        System.out.println("obj detected at time " + time + " with id " + id + " and cloud points ");
+        printCloudPoints();
+    }
+
+    public void printCloudPoints(){
+        for (CloudPoint c : cloudPoints){
+            System.out.println(c.toString());
+        }
     }
 }

@@ -1,5 +1,6 @@
 package bgu.spl.mics.application.objects;
 
+import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -21,9 +22,9 @@ public class LiDarDataBase {
     private static List<StampedCloudPoints> list;
 
     //singleton DesignPattern
-    public static LiDarDataBase getInstance(){
-        if(instance==null){
-            instance=new LiDarDataBase();
+    public static LiDarDataBase getInstance() {
+        if (instance == null) {
+            instance = new LiDarDataBase();
         }
         return instance;
     }
@@ -40,22 +41,23 @@ public class LiDarDataBase {
             list = Collections.synchronizedList(new ArrayList<>());
             try {
                 Gson gson = new Gson();
-                Type listType = new TypeToken<List<LidarJson>>(){}.getType();
+                Type listType = new TypeToken<List<LidarJson>>() {
+                }.getType();
 
                 // Parse the JSON string into a list of LidarJsonEntry objects
                 List<LidarJson> lidarJsonEntries = gson.fromJson(filePath, listType);
 
 
                 for (LidarJson entry : lidarJsonEntries) {
-                    StampedCloudPoints stampedPoint = new StampedCloudPoints(entry.getTime() , entry.getId());
+                    StampedCloudPoints stampedPoint = new StampedCloudPoints(entry.getTime(), entry.getId());
                     System.out.println("Time: " + entry.getTime());
                     System.out.println("ID: " + entry.getId());
                     System.out.println("Cloud Points: ");
                     for (List<Double> point : entry.getCloudPoints()) {
                         System.out.println("  Point: " + point);
                         System.out.println("x = " + point.get(0));
-                        System.out.println("y = " +point.get(1));
-                        CloudPoint cloudPoint = new CloudPoint(point.get(0) , point.get(1));
+                        System.out.println("y = " + point.get(1));
+                        CloudPoint cloudPoint = new CloudPoint(point.get(0), point.get(1));
 
                         System.out.println("the cloundPoint is: " + cloudPoint);
                         stampedPoint.addCloudPoint(cloudPoint);
@@ -63,11 +65,7 @@ public class LiDarDataBase {
                     }
 
                 }
-            }
-
-
-
-             catch (Exception e) {
+            } catch (Exception e) {
 
             }
         }
@@ -82,8 +80,12 @@ public class LiDarDataBase {
         }
         return null;
     }
+}
 
-           }
+
+
+
+
 
 
 

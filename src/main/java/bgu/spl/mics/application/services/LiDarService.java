@@ -23,18 +23,20 @@ import java.util.List;
  */
 public class LiDarService extends MicroService {
 
+    /////fields/////
     LiDarWorkerTracker lidar;
     private int tick;
+    ////////////////
 
     /**
      * Constructor for LiDarService.
      *
      * @param LiDarWorkerTracker A LiDAR Tracker worker object that this service will use to process data.
      */
-    public LiDarService(LiDarWorkerTracker LiDarWorkerTracker) {
+    public LiDarService(LiDarWorkerTracker LiDarWorkerTracker , int time) {
         super("Lidar" + LiDarWorkerTracker.getId());
         this.lidar = LiDarWorkerTracker;
-        tick=1;
+        tick = time; //time not necessary starts from 1
     }
 
     /**
@@ -44,38 +46,56 @@ public class LiDarService extends MicroService {
      */
     @Override
     protected void initialize() {
-        subscribeEvent(DetectObjectEvent.class , callback ->{
-            StampedDetectedObjects objects = callback.getObj();
-            List<DetectedObject> list = objects.getDetectedObjects();
-            lidar.clearList();
-            for (DetectedObject o : list) {
-                StampedCloudPoints points = LiDarDataBase.getObject(o.getId());
+        //handling DetectObjectEvent
+        subscribeEvent(DetectObjectEvent.class , callback -> {
 
-                TrackedObject trackedObject = new TrackedObject(points.getId(), points.getTime(), o.getDescription());
-                List<CloudPoint> cloudPoints = points.getCloudPoints();
-                for (CloudPoint p : cloudPoints) {
-                    trackedObject.addCoordinate(p);
+            //case1 - object was never detected before
+            if (lidar.isObjectDetected(callback.getId())) {
+                //this two lines should have the same tickTime
+                StampedDetectedObjects objects = callback.getObj(tick);
+                List<DetectedObject> list = objects.getDetectedObjects();
+
+                //lidar.clearList();
+
+                for (DetectedObject o : list) {
+
+                    //returns a stampedDetectedObject matching the ID object
+                    //points & detected objects "is the same"
+                    StampedCloudPoints points = LiDarDataBase.getObject(o.getId());
+
+                    TrackedObject trackedObject = new TrackedObject(points.getId(), points.getTime(), o.getDescription());
+
+                    List<CloudPoint> cloudPoints = points.getCloudPoints(); //points of the object
+                    for (CloudPoint p : cloudPoints) {
+                        trackedObject.addCoordinate(p);
+                    }
+                    lidar.add(trackedObject);
+
+                    //for each lidar that detected an object , fusion slam should know that object was detected
+                    FusionSlam.getInstance().addTrackedObj(trackedObject);
                 }
-                lidar.add(trackedObject);
             }
+            //case2 - object was detected before - we do average
+            //else {} - should not be here , should be when doing landMark in the fusionSlam
         });
 
 
+
         subscribeBroadcast(TickBroadcast.class, callback ->{
-                    List<TrackedObject> trackedObjectList=lidar.getList();
-                    List<TrackedObject> trackedObjectList2=new ArrayList<>();
-                    for(TrackedObject o:trackedObjectList)
-                    {
-                        if(o.getTime()+lidar.getFrequency()==tick){
-                            trackedObjectList2.add(o);
-                        }
 
+                    List<TrackedObject> trackedObjectList = lidar.getList();
+                    List<TrackedObject> sendObjects = new ArrayList<>();
+
+                    //should we remove the object for efficiency ?
+                    for(TrackedObject o : trackedObjectList) {
+                        if(o.getTime() + lidar.getFrequency() == tick){
+                            sendObjects.add(o);}
                     }
-                    sendEvent(new TrackedObjectsEvent(trackedObjectList2));
-                    tick++;
-
+                    sendEvent(new TrackedObjectsEvent(sendObjects));
+                    tick++; //again is thick++ needs to be here , and how we maintain sync of all times ?!
                 }
         );
+
         subscribeBroadcast(TerminatedBroadcast.class, callback ->{
                     terminate();
                 }

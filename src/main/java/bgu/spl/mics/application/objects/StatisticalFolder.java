@@ -36,6 +36,5 @@ public class StatisticalFolder {
     //incrementMethods
     public void incrementSystemRuntime() {systemRuntime++;}
     public void incrementNumberOfDetectedObjects(int i) {numberOfDetectedObjects+=i;}
-    public void incrementNumberOfTrackedObjects(int i) {numberOfTrackedObjects+=i;}
     public void incrementNumberOfLandmarks(int i) {numberOfLandmarks+=i;}
 }

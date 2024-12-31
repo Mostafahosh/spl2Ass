@@ -6,6 +6,8 @@ import bgu.spl.mics.application.Messages.Broadcasts.TerminatedBroadcast;
 import bgu.spl.mics.application.Messages.Broadcasts.TickBroadcast;
 import bgu.spl.mics.application.Messages.Events.DetectObjectEvent;
 import bgu.spl.mics.application.objects.Camera;
+import bgu.spl.mics.application.objects.DetectedObject;
+import bgu.spl.mics.application.objects.StampedDetectedObjects;
 import bgu.spl.mics.application.objects.StatisticalFolder;
 
 import java.util.List;
@@ -19,18 +21,20 @@ import java.util.List;
  * the system's StatisticalFolder upon sending its observations.
  */
 public class CameraService extends MicroService {
+    /////fields/////
     private Camera camera;
     private int tick;
+    ////////////////
 
     /**
      * Constructor for CameraService.
      *
      * @param camera The Camera object that this service will use to detect objects.
      */
-    public CameraService(Camera camera) {
+    public CameraService(Camera camera , int tick) {
         super("camera " + camera.get_id());
         this.camera = camera;
-        this.tick = 1;
+        this.tick = tick;
 
     }
 
@@ -41,16 +45,13 @@ public class CameraService extends MicroService {
      */
     @Override
     protected void initialize() {
-    subscribeBroadcast(TickBroadcast.class, callback ->{
-//                List<DetectObjectEvent> list = camera.detectObjects(tick);
-//                for(DetectObjectEvent e:list){
-//                    sendEvent(e);
-//
-//                }
-                tick++;
-            }
-                //sending detectedObjectsEvent
-    );
+    subscribeBroadcast(TickBroadcast.class, callback -> {
+
+        //should return all objects detected at time tick - should build this from the jsonFile
+        StampedDetectedObjects stampObj = camera.get(tick);
+        DetectObjectEvent event = new DetectObjectEvent(stampObj , tick);
+        sendEvent(event);
+    });
 
     subscribeBroadcast(TerminatedBroadcast.class, callback ->{
         terminate();

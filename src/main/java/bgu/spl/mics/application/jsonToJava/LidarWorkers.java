@@ -20,4 +20,10 @@ public class LidarWorkers {
 
     public String getLidars_data_path() { return lidars_data_path; }
     public void setLidars_data_path(String lidars_data_path) { this.lidars_data_path = lidars_data_path; }
+
+    public void toStringLidar(){
+        for (LiDarWorkerTracker l : LidarConfigurations){
+            l.toStringL();
+        }
+    }
 }

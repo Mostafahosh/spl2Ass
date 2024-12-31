@@ -1,5 +1,10 @@
 package bgu.spl.mics.application.objects;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import java.io.FileReader;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -9,16 +14,16 @@ import java.util.List;
  * time of tracking, and coordinates in the environment.
  */
 public class TrackedObject {
-    private String id;
     private int time;
-    private String description;
+    private String id;
     private List<CloudPoint> coordinates;
+    private String description;
 
     public TrackedObject(String id, int time, String description) {
-        this.id = id;
         this.time = time;
-        this.description = description;
+        this.id = id;
         this.coordinates = Collections.synchronizedList(new ArrayList<>());
+        this.description = description;
     }
 
     public String getId() {return id;}
@@ -36,4 +41,21 @@ public class TrackedObject {
 
     public void addCoordinate(CloudPoint point) {coordinates.add(point);}
     public List<CloudPoint> getCoordinates() {return coordinates;}
+
+    public void toString_lidar(){
+        System.out.println("lidar: " + id);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
