@@ -9,18 +9,18 @@ import java.util.List;
 public class LandMark {
     private String id;
     private String description;
-    private List<CloudPoint> list;
+    private List<CloudPoint> coordinates;
 
-    public LandMark(String id, String description, List<CloudPoint> list) {
+    public LandMark(String id, String description, List<CloudPoint> coordinates) {
         this.id = id;
         this.description = description;
-        this.list = list;
+        this.coordinates = coordinates;
     }
 
     public String getId() {return id;}
     public String getDescription() {return description;}
-    public List<CloudPoint> getList() {return list;}
-    public void setList(List<CloudPoint> list) {this.list = list;}
+    public List<CloudPoint> getList() {return coordinates;}
+    public void setList(List<CloudPoint> list) {this.coordinates = list;}
 
 
 }

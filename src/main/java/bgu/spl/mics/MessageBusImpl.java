@@ -18,7 +18,7 @@ public class MessageBusImpl implements MessageBus {
 	private static MessageBusImpl instance;
 	//we should have collection of Queues for Microservices
 	//each MessageType should have queue of which microservices are subscribed
-	private ConcurrentHashMap<Message, Queue<MicroService>> msgMap = new ConcurrentHashMap<>();
+	private ConcurrentHashMap< Message, Queue<MicroService>> msgMap = new ConcurrentHashMap<>();
 	private ConcurrentHashMap<MicroService , Queue<Message>> microMap = new ConcurrentHashMap<>();//must be Blocking queue
 	private ConcurrentHashMap<Event , Future> event_Future = new ConcurrentHashMap<>();
 
@@ -34,6 +34,7 @@ public class MessageBusImpl implements MessageBus {
 
 	@Override
 	public <T> void subscribeEvent(Class<? extends Event<T>> type, MicroService m) {
+
 		Queue<MicroService> MsgType = msgMap.get(type);
 		MsgType.add(m);
 	}
@@ -116,6 +117,17 @@ public class MessageBusImpl implements MessageBus {
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////
 	private boolean isRegistered(MicroService m){
 		return microMap.get(m)!=null;
+	}
+
+	public void registerQueues() {
+		//Queue<MicroService> QMicro=new LinkedList<>();
+//		Queue<MicroService> DetectedObjectsEvent=new LinkedList<>();
+//		Queue<MicroService> DetectedObjectsEvent=new LinkedList<>();
+//		Queue<MicroService> QMicro=new LinkedList<>();
+//		Queue<MicroService> QMicro=new LinkedList<>();
+//		Queue<MicroService> QMicro=new LinkedList<>();
+//		Queue<MicroService> QMicro=new LinkedList<>();
+
 	}
 
 	

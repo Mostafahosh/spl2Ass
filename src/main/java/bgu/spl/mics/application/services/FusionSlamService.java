@@ -98,6 +98,7 @@ public class FusionSlamService extends MicroService {
         );
 
         subscribeBroadcast(TerminatedBroadcast.class, callback ->{
+
                     terminate();
                 }
         );

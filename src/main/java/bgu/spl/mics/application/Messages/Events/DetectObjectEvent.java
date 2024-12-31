@@ -18,6 +18,7 @@ public class DetectObjectEvent implements Event<DetectedObject> {
     public DetectObjectEvent(StampedDetectedObjects obj , int time) {
         this.obj = obj;
         this.time = time;
+
     }
 
 public int getTime() {return time;}

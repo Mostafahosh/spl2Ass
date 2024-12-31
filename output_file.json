@@ -1,0 +1,36 @@
+{
+  "systemRuntime": 30,
+  "numDetectedObjects": 7,
+  "numTrackedObjects": 7,
+  "numLandmarks": 9,
+  "landMarks": {
+    "door": {
+      "id": "door",
+      "description": "brown_door",
+      "coordinates": [
+        {
+          "x": 7.1,
+          "y": 5.3
+        },
+        {
+          "x": 15.4,
+          "y": 8.0
+        }
+      ]
+    },
+    "table": {
+      "id": "table",
+      "description": "red_table",
+      "coordinates": [
+        {
+          "x": 3.4,
+          "y": 5.9
+        },
+        {
+          "x": 1.9,
+          "y": 9.6
+        }
+      ]
+    }
+  }
+}

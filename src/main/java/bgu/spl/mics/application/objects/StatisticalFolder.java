@@ -37,4 +37,13 @@ public class StatisticalFolder {
     public void incrementSystemRuntime() {systemRuntime++;}
     public void incrementNumberOfDetectedObjects(int i) {numberOfDetectedObjects+=i;}
     public void incrementNumberOfLandmarks(int i) {numberOfLandmarks+=i;}
+
+    public void incrementNumberOfTrackedObjects(int size) {
+        numberOfTrackedObjects += size;
+    }
+
+    public void setNumberOfDetectedObjects(int num){numberOfDetectedObjects = num;}
+    public void setNumberOfTrackedObjects(int num){numberOfTrackedObjects = num;}
+    public void setNumberOfLandmarks(int num){numberOfLandmarks = num;}
+    public void setSystemRuntime(int num){systemRuntime = num;}
 }

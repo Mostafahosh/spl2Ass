@@ -22,12 +22,12 @@ public class LiDarDataBase {
     private static List<StampedCloudPoints> list;
 
     //singleton DesignPattern
-    public static LiDarDataBase getInstance() {
-        if (instance == null) {
-            instance = new LiDarDataBase();
-        }
-        return instance;
-    }
+//    public static LiDarDataBase getInstance() {
+//        if (instance == null) {
+//            instance = new LiDarDataBase();
+//        }
+//        return instance;
+//    }
 
     /**
      * Returns the singleton instance of LiDarDataBase.
@@ -39,13 +39,15 @@ public class LiDarDataBase {
         if (instance == null) {
             instance = new LiDarDataBase();
             list = Collections.synchronizedList(new ArrayList<>());
-            try {
+            try (FileReader reader = new FileReader(filePath)){
+
                 Gson gson = new Gson();
-                Type listType = new TypeToken<List<LidarJson>>() {
-                }.getType();
+                Type lst = new TypeToken<List<LidarJson>>() {}.getType();
 
                 // Parse the JSON string into a list of LidarJsonEntry objects
-                List<LidarJson> lidarJsonEntries = gson.fromJson(filePath, listType);
+                System.out.println("im before list<Lidar>");
+                ArrayList<LidarJson> lidarJsonEntries = gson.fromJson(reader, lst);
+                System.out.println("im after list<Lidar>");
 
 
                 for (LidarJson entry : lidarJsonEntries) {
@@ -63,9 +65,11 @@ public class LiDarDataBase {
                         stampedPoint.addCloudPoint(cloudPoint);
                         System.out.println("______________________");
                     }
+                        list.add(stampedPoint);
 
                 }
             } catch (Exception e) {
+                System.out.println("im in extension");
 
             }
         }
@@ -80,6 +84,8 @@ public class LiDarDataBase {
         }
         return null;
     }
+
+    public List<StampedCloudPoints> getStampedPoints(){return list;}
 }
 
 

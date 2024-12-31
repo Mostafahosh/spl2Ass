@@ -51,11 +51,13 @@ public class LiDarService extends MicroService {
 
             //case1 - object was never detected before
             if (lidar.isObjectDetected(callback.getId())) {
+
                 //this two lines should have the same tickTime
                 StampedDetectedObjects objects = callback.getObj(tick);
                 List<DetectedObject> list = objects.getDetectedObjects();
 
-                //lidar.clearList();
+                //the last objects the lidar tracked
+                lidar.clearList();
 
                 for (DetectedObject o : list) {
 
@@ -63,13 +65,14 @@ public class LiDarService extends MicroService {
                     //points & detected objects "is the same"
                     StampedCloudPoints points = LiDarDataBase.getObject(o.getId());
 
-                    TrackedObject trackedObject = new TrackedObject(points.getId(), points.getTime(), o.getDescription());
+                    TrackedObject trackedObject = new TrackedObject(o.getId(), tick, o.getDescription());
 
                     List<CloudPoint> cloudPoints = points.getCloudPoints(); //points of the object
                     for (CloudPoint p : cloudPoints) {
                         trackedObject.addCoordinate(p);
                     }
                     lidar.add(trackedObject);
+
 
                     //for each lidar that detected an object , fusion slam should know that object was detected
                     FusionSlam.getInstance().addTrackedObj(trackedObject);
