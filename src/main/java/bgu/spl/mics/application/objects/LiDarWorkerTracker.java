@@ -19,7 +19,7 @@ public class LiDarWorkerTracker {
     private STATUS status;
     private List<TrackedObject> lastTrackedObjects;
 
-    LiDarWorkerTracker(int id, int frequency) {
+    public LiDarWorkerTracker(int id, int frequency) {
         this.id = id;
         this.frequency = frequency;
         status = STATUS.UP;
@@ -39,10 +39,13 @@ public class LiDarWorkerTracker {
     public List<TrackedObject> getList() {
         return lastTrackedObjects;
     }
+    public void  setLastTrackedObjects(List<TrackedObject> list){
+        lastTrackedObjects=list;
+    }
 
     public boolean isObjectDetected(String id){
         for (TrackedObject obj : lastTrackedObjects){
-            if (obj.getId() == id){return true;}
+            if (obj.getId().equals( id)){return true;}
         }
         return false;
     }

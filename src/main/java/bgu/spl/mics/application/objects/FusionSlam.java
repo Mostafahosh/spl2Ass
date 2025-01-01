@@ -23,6 +23,7 @@ public class FusionSlam {
     public FusionSlam(){
         landmarks=Collections.synchronizedList(new ArrayList<>());
         poses= Collections.synchronizedList(new ArrayList<>());
+        trackedObjects =  Collections.synchronizedList(new ArrayList<>());
     }
     public static FusionSlam getInstance(){
         return FusionSlamHolder.instance;

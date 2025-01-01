@@ -26,7 +26,16 @@ public class StampedDetectedObjects {
         return detectedObjects;
     }
 
-    public String toString(){
-        return "detected objects at time " + time + " and objects " + detectedObjects;
+    public void Print(){
+        System.out.println("detected objects at time " + time + " and objects: ");
+        printList();
     }
+
+    public void printList() {
+        for (DetectedObject object : detectedObjects) {
+            System.out.println(object);
+        }
+    }
+
+
 }

@@ -7,7 +7,7 @@ import bgu.spl.mics.application.objects.StampedDetectedObjects;
 
 import java.util.List;
 
-public class DetectObjectEvent implements Event<DetectedObject> {
+public class DetectObjectEvent implements Event<Boolean> {
 
     /////fields/////
     private StampedDetectedObjects obj;

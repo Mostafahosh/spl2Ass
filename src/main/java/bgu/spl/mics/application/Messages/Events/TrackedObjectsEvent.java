@@ -5,7 +5,7 @@ import bgu.spl.mics.application.objects.TrackedObject;
 
 import java.util.List;
 
-public class TrackedObjectsEvent implements Event<TrackedObject> {
+public class TrackedObjectsEvent implements Event<Boolean> {
     private List<TrackedObject> trackedObjects;
 
     public TrackedObjectsEvent(List<TrackedObject> trackedObjects) {

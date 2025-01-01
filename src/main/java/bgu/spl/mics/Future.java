@@ -50,15 +50,15 @@ public class Future<T> {
 	public void  resolve(T result) {
 		rslt = result;
 		isResolve = true;
-		notifyAll();
+		synchronized (this){
+		notifyAll();}
 	}
 
 	/**
 	 * @return true if this object has been resolved, false otherwise
 	 */
 	public boolean isDone() {
-		if(isResolve){return isResolve;}
-		return false;
+		return isResolve;
 	}
 
 	/**
@@ -74,33 +74,49 @@ public class Future<T> {
      */
 
 	public synchronized T get(long timeout, TimeUnit unit) {
+
+		if (!isResolve){
+			synchronized (this) {
+				try {
+					wait(unit.toMillis(timeout));
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return this.rslt;
+
+
+
+
+	}
 //		if (isResolve){return mSG;}
 //		long TimeWait = unit.toMillis(timeout);
 //		wait(TimeWait);
 //		if (isResolve){return mSG;}
 //		return null;
 //}
-		if (isResolve) { // If already resolved, return the result immediately
-			return rslt;
-		}
-
-		long timeoutMillis = unit.toMillis(timeout); // Convert timeout to milliseconds
-		long startTime = System.currentTimeMillis(); // Record start time
-
-		while (!isResolve) {
-			long elapsedTime = System.currentTimeMillis() - startTime; // Time already waited
-			long remainingTime = timeoutMillis - elapsedTime; // Time left to wait
-
-			if (remainingTime <= 0) {
-				return null; // Timeout expired, return null
-			}
-
-			try {
-				wait(remainingTime); // Wait for the remaining time
-			}
-			catch (InterruptedException ignored){}
-		}
-
-		return rslt; // Return the result if resolved
-	}
+//		if (isResolve) { // If already resolved, return the result immediately
+//			return rslt;
+//		}
+//
+//		long timeoutMillis = unit.toMillis(timeout); // Convert timeout to milliseconds
+//		long startTime = System.currentTimeMillis(); // Record start time
+//
+//		while (!isResolve) {
+//			long elapsedTime = System.currentTimeMillis() - startTime; // Time already waited
+//			long remainingTime = timeoutMillis - elapsedTime; // Time left to wait
+//
+//			if (remainingTime <= 0) {
+//				return null; // Timeout expired, return null
+//			}
+//
+//			try {
+//				wait(remainingTime); // Wait for the remaining time
+//			}
+//			catch (InterruptedException ignored){}
+//		}
+//
+//		return rslt; // Return the result if resolved
+//	}
 }

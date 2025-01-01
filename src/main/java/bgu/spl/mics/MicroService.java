@@ -31,8 +31,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public abstract class MicroService implements Runnable {
     private final StatisticalFolder statisticalFolder =StatisticalFolder.getInstance();
     private final MessageBusImpl messageBus = MessageBusImpl.getInstance();
-    private ConcurrentHashMap<String,Callback> eventMapCallback;
-    private ConcurrentHashMap<String , Callback> broadMapCallback;
+    private ConcurrentHashMap<String,Callback> eventCallback;
+    private ConcurrentHashMap<String , Callback> broadCallback;
     private boolean terminated = false;
     private final String name;
 
@@ -42,8 +42,8 @@ public abstract class MicroService implements Runnable {
      */
     public MicroService(String name) {
         this.name = name;
-        eventMapCallback = new ConcurrentHashMap<>();
-        broadMapCallback = new ConcurrentHashMap<>();
+        eventCallback = new ConcurrentHashMap<>();
+        broadCallback = new ConcurrentHashMap<>();
     }
 
     /**
@@ -69,7 +69,7 @@ public abstract class MicroService implements Runnable {
      */
     protected final <T, E extends Event<T>> void subscribeEvent(Class<E> type, Callback<E> callback) {
         messageBus.subscribeEvent(type,this);
-        eventMapCallback.put(type.getName(),callback);
+        eventCallback.put(type.getName(),callback);
     }
 
     /**
@@ -93,8 +93,9 @@ public abstract class MicroService implements Runnable {
      *                 queue.
      */
     protected final <B extends Broadcast> void subscribeBroadcast(Class<B> type, Callback<B> callback) {
+        System.out.println("im in the micro service subscribeBroadCast - " + this.getName() + " to sub to TickBroadCast");
         messageBus.subscribeBroadcast(type,this);
-        broadMapCallback.put(type.getName(),callback);
+        broadCallback.put(type.getName(),callback);
     }
 
     /**
@@ -154,6 +155,7 @@ public abstract class MicroService implements Runnable {
      * message.
      */
     protected final void terminate() {
+        System.out.println(this.getName() + "isTerminated");
         this.terminated = true;
     }
 
@@ -174,19 +176,51 @@ public abstract class MicroService implements Runnable {
         messageBus.register(this);
         initialize();
         while (!terminated) {
-            Message msg = messageBus.awaitMessage(this);
-            Callback callback = eventMapCallback.get(msg.getClass().getName());
-            if (callback != null) {
-                callback.call(msg);}
+            try {
+                Message msg = messageBus.awaitMessage(this);
+//                boolean r = msg!= null;
+//                System.out.println(r);
 
-            else {callback = broadMapCallback.get(msg.getClass().getName());
-                if (callback != null) {
-                    callback.call(msg);
+                if(msg!=null) {
+                    if (msg instanceof Broadcast) {
+                        Callback tmp = broadCallback.get(msg.getClass().getName());
+                        tmp.call(msg);
+                    } else {
+                        Callback tmp = eventCallback.get(msg.getClass().getName());
+                        tmp.call(msg);
+                    }
                 }
-            }
+            } catch (Exception e) {
 
+                System.out.println("im in the microService run exception");
+                e.printStackTrace();
+            }
         }
         messageBus.unregister(this);
+
+
+
+
+
+
+
+
+//        messageBus.register(this);
+//        initialize();
+//        while (!terminated) {
+//            Message msg = messageBus.awaitMessage(this);
+//            Callback callback = eventMapCallback.get(msg.getClass().getName());
+//            if (callback != null) {
+//                callback.call(msg);}
+//
+//            else {callback = broadMapCallback.get(msg.getClass().getName());
+//                if (callback != null) {
+//                    callback.call(msg);
+//                }
+//            }
+//
+//        }
+//        messageBus.unregister(this);
     }
 
 }

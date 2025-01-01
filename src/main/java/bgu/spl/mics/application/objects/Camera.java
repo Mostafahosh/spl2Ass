@@ -18,6 +18,7 @@ import java.util.concurrent.Semaphore;
 public class Camera {
     int id;
     int frequency;
+    String camera_key;
     STATUS status;
     List<StampedDetectedObjects> list;
 
@@ -32,6 +33,8 @@ public class Camera {
     public int get_id() {
         return id;
     }
+    public String getCamera_key(){return camera_key;}
+    public void setCamera_key(String name){camera_key = name;}
 
     public int get_frequency() {
         return frequency;
@@ -61,13 +64,14 @@ public class Camera {
     }
 
     public List<StampedDetectedObjects> getList(){return list;}
+    public void setList(List<StampedDetectedObjects> newlist){list = newlist;}
 
     public int numOfObjects() {
         return list.size();
     }
 
     public String toString() {
-        return "Camera id: " + id;
+        return "Camera id: " + id + " with frequency: " + frequency;
     }
 
 

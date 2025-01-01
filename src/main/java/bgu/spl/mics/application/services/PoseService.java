@@ -5,7 +5,11 @@ import bgu.spl.mics.application.Messages.Broadcasts.TerminatedBroadcast;
 import bgu.spl.mics.application.Messages.Broadcasts.TickBroadcast;
 import bgu.spl.mics.application.Messages.Events.PoseEvent;
 import bgu.spl.mics.application.objects.GPSIMU;
+import bgu.spl.mics.application.objects.GlobalTime;
 import bgu.spl.mics.application.objects.Pose;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
 
 /**
  * PoseService is responsible for maintaining the robot's current pose (position and orientation)
@@ -13,8 +17,9 @@ import bgu.spl.mics.application.objects.Pose;
  */
 public class PoseService extends MicroService {
 /////fields/////
-    GPSIMU gpsimu;
-    int tick;
+   private GPSIMU gpsimu;
+   private int tick;
+   private CountDownLatch latch;
 ////////////////
 
 
@@ -23,10 +28,11 @@ public class PoseService extends MicroService {
      *
      * @param gpsimu The GPSIMU object that provides the robot's pose data.
      */
-    public PoseService(GPSIMU gpsimu , int tick) {
+    public PoseService(GPSIMU gpsimu , int tick , CountDownLatch latch) {
         super("poseAtTime: " + gpsimu.getCurrentTick());
         this.gpsimu = gpsimu;
         this.tick = tick; //simulation not necessary starts from tick 1
+        this.latch = latch;
     }
 
     /**
@@ -36,16 +42,19 @@ public class PoseService extends MicroService {
     @Override
     protected void initialize() {
         subscribeBroadcast(TickBroadcast.class, callback ->{
+
             Pose pose;
-            pose = gpsimu.findPose(tick);
+            pose = gpsimu.findPose(GlobalTime.getInstance().getGlobalTime());
             PoseEvent event = new PoseEvent(pose);
             sendEvent(event);
-            tick++; //should here raise the tick / or in a general while loop in each iteration raise the tick ?
+            //tick++; //should here raise the tick / or in a general while loop in each iteration raise the tick ?
+           latch.countDown();
         });
 
         //should subscribe to crashBroadCast ?
 
         subscribeBroadcast(TerminatedBroadcast.class, callback ->{
+            System.out.println("it's time for " + this.getName() + " Service to subscribe to TerminateBroadCast");
             terminate();
         });
 

@@ -30,6 +30,7 @@ public class GPSIMU {
     public void add(Pose obj){list.add(obj);}
     public STATUS getStatus() {return status;}
     public void setStatus(STATUS status) {this.status = status;}
+    public List<Pose> getList(){return list;}
 
 
     public Pose findPose (int time){
@@ -43,22 +44,11 @@ public class GPSIMU {
         return null; //should never return null
     }
 
-    public void parsePoseData(){
-                Gson gson = new Gson();
-
-        String filePath = "example input/pose_data.json"; // Replace with the actual file path
-        try (FileReader reader = new FileReader(filePath)){
-            Type lst = new TypeToken<ArrayList<Pose>>(){}.getType();
-            ArrayList<Pose> poses = gson.fromJson(reader, lst);
-
-            for (Pose pose : poses) {
-                System.out.println(pose);
-                list.add(pose);
-            }
-
-        }    catch (IOException e) {
-            e.printStackTrace();
+    public void print() {
+        for (Pose p : list) {
+            System.out.println(p);
         }
     }
+
 
 }

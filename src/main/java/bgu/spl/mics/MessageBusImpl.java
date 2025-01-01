@@ -1,8 +1,12 @@
 package bgu.spl.mics;
+import bgu.spl.mics.application.Messages.Broadcasts.TickBroadcast;
+
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 
 /**
@@ -18,8 +22,11 @@ public class MessageBusImpl implements MessageBus {
 	private static MessageBusImpl instance;
 	//we should have collection of Queues for Microservices
 	//each MessageType should have queue of which microservices are subscribed
-	private ConcurrentHashMap< Message, Queue<MicroService>> msgMap = new ConcurrentHashMap<>();
-	private ConcurrentHashMap<MicroService , Queue<Message>> microMap = new ConcurrentHashMap<>();//must be Blocking queue
+	private ConcurrentHashMap<MicroService, LinkedBlockingQueue<Message>> micros = new ConcurrentHashMap<>();
+	private ConcurrentHashMap< Class<? extends Event>, ConcurrentLinkedQueue<MicroService>> eventMicro = new ConcurrentHashMap<>();
+	private ConcurrentHashMap< Class<? extends Broadcast>, ConcurrentLinkedQueue<MicroService>> broadMicro = new ConcurrentHashMap<>();
+	private ConcurrentHashMap<MicroService, ConcurrentLinkedQueue<Class<? extends Event>>> microEvent = new ConcurrentHashMap<>();
+	private ConcurrentHashMap<MicroService , ConcurrentLinkedQueue<Class<? extends Broadcast>>> microBroad = new ConcurrentHashMap<>();//must be Blocking queue
 	private ConcurrentHashMap<Event , Future> event_Future = new ConcurrentHashMap<>();
 
 
@@ -34,16 +41,45 @@ public class MessageBusImpl implements MessageBus {
 
 	@Override
 	public <T> void subscribeEvent(Class<? extends Event<T>> type, MicroService m) {
+		eventMicro.putIfAbsent(type, new ConcurrentLinkedQueue<>()); //initialize a queue for Event type if not initialized before
+		microEvent.putIfAbsent(m, new ConcurrentLinkedQueue<Class<? extends Event>>()); //initialize a queue for MicroService m if not initialized before
 
-		Queue<MicroService> MsgType = msgMap.get(type);
-		MsgType.add(m);
+		synchronized (m) {
+			ConcurrentLinkedQueue<Class<? extends Event>> eventQ = microEvent.get(m);
+			if (eventQ != null) {
+				eventQ.add(type);
+			}
+		}
+
+		synchronized (type) {
+			ConcurrentLinkedQueue<MicroService> microQ = eventMicro.get(type);
+			if (microQ != null) {
+				microQ.add(m);
+			}
+		}
 	}
 
-	@Override
+
+		@Override
 	public void subscribeBroadcast(Class<? extends Broadcast> type, MicroService m) {
-			Queue<MicroService> queueOfBroad = msgMap.get(type);
-			queueOfBroad.add(m);
-	}
+			broadMicro.putIfAbsent(type, new ConcurrentLinkedQueue<>()); //initialize a queue for Broad type if not initialized before
+			microBroad.putIfAbsent(m, new ConcurrentLinkedQueue<Class<? extends Broadcast>>()); //initialize a queue for MicroService m if not initialized before
+
+			synchronized (m) {
+				ConcurrentLinkedQueue<Class<? extends Broadcast>>  queueOfBroad = microBroad.get(m);
+				if (queueOfBroad != null) {
+					queueOfBroad.add(type);
+				}
+			}
+
+			synchronized (type){
+				ConcurrentLinkedQueue<MicroService> Q = broadMicro.get(type);
+				if (Q != null){
+					Q.add(m);
+					System.out.println("here im subscribed!");
+				}
+			}
+		}
 
 	@Override
 	public <T> void complete(Event<T> e, T result) {
@@ -53,10 +89,25 @@ public class MessageBusImpl implements MessageBus {
 
 	@Override
 	public void sendBroadcast(Broadcast b) {
-		//check if null ??
-		for (Map.Entry<MicroService, Queue<Message>> entry : microMap.entrySet()) {
-			Queue<Message> queue = entry.getValue();
-			queue.add(b);
+		synchronized (b.getClass()) {
+			//System.out.println("im before the if statement - MsgBus line 90");
+			if (broadMicro.containsKey(b.getClass())) {
+				//System.out.println("im in the if statement - MsgBus line 92");
+
+				ConcurrentLinkedQueue<MicroService> micro = broadMicro.get(b.getClass());
+				System.out.println("the sizeOF TickBroadCAst Q is: " + micro.size());
+				for (MicroService microService : micro) {
+					System.out.println("im " + microService.getName() + " subscribed to TickBroadCast");
+					LinkedBlockingQueue<Message> Q = micros.get(microService);
+
+					boolean sign = Q != null;
+					System.out.println("is Q != null: " + sign);
+
+					if (Q != null) {
+						Q.add(b);
+					}
+				}
+			}
 		}
 	}
 
@@ -65,11 +116,13 @@ public class MessageBusImpl implements MessageBus {
 	public <T> Future<T> sendEvent(Event<T> e) {
 		Future<T> future = new Future<>();
 
-		if (msgMap.get(e) == null || !msgMap.containsKey(e)){return null;}
-		Queue<MicroService> currQofEvent = msgMap.get(e);
+		if (eventMicro.get(e.getClass()) == null || !eventMicro.containsKey(e.getClass())){return null;}
 
-		if (currQofEvent == null){return null;}
 		event_Future.put(e,future);
+		ConcurrentLinkedQueue<MicroService> currQofEvent = eventMicro.get(e.getClass());
+
+		if (currQofEvent == null){return null;} //if no queue then no one has registered to it yet, or already unregistered
+
 
 		//round-robin
 		MicroService currMicro = currQofEvent.poll();//should never return null because of the if above
@@ -77,59 +130,99 @@ public class MessageBusImpl implements MessageBus {
 		currQofEvent.add(currMicro);
 		//
 
-		Queue<Message> currQofMicro = microMap.get(currMicro); //Q contains the events of the currMicroService
-		currQofMicro.add(e);
-		//should wait until its event take proccess time ?
-		//should do syncronized
+synchronized (currMicro){
+		LinkedBlockingQueue<Message> Q = micros.get(currMicro);
+		if (Q == null) {
+			return null;
+		}
+		Q.add(e);}
+
 	return future;}
 
 	@Override
 	public void register(MicroService m) {
-		Queue<Message> QMicro=new LinkedList<>();
-		microMap.put(m,QMicro);
+		micros.putIfAbsent(m, new LinkedBlockingQueue<>());
+
 	}
 
 	@Override
 	public void unregister(MicroService m) {
-		if(isRegistered(m)){
-			microMap.remove(m);
+		if (micros.containsKey(m)) {
+			LinkedBlockingQueue<Message> q;
+
+			if (microEvent.containsKey(m)) {
+				ConcurrentLinkedQueue<Class<? extends Event>> q3 = microEvent.get(m);
+				for (Class<? extends Event> type : q3) {
+					synchronized (type) {
+						eventMicro.get(type).remove(m);
+					}
+				}
+				microEvent.remove(m);
+			}
+			synchronized (m) {
+				if (microBroad.containsKey(m)) {
+					ConcurrentLinkedQueue<Class<? extends Broadcast>> q2 = microBroad.get(m);
+					for (Class<? extends Broadcast> type : q2) {
+						synchronized (type) {
+							broadMicro.get(type).remove(m);
+						}
+					}
+					microBroad.remove(m);
+				}
+				q = micros.remove(m);
+				if (q == null) {
+					return;
+				}
+			}
+			while (!q.isEmpty()) {
+				Message message = q.poll();
+				if (message != null) {
+					Future<?> future = event_Future.get(message);
+					if (future != null) {
+						future.resolve(null);
+					}
+				}
+			}
 		}
-		for (Map.Entry<Message, Queue<MicroService>> entry : msgMap.entrySet()) {
-			Queue<MicroService> queue = entry.getValue();
-			queue.remove(m);
-		}
-		//ask lotam about whether the queue should be empty when doing unregister??!!
 	}
 
 	@Override
 	public Message awaitMessage(MicroService m)  {
-		if(!isRegistered(m)) throw new IllegalStateException();
-		Queue<Message> currQ = microMap.get(m);
-		while(currQ.isEmpty()){
-			try {
-				wait();
-			}
-			//where notify should be?
-			catch(InterruptedException ignored){}
+//		if(!isRegistered(m)) throw new IllegalStateException();
+//		LinkedBlockingQueue<Message> currQ = micros.get(m);
+//		while(currQ.isEmpty()){
+//			try {
+//				wait();
+//			}
+//			//where notify should be?
+//			catch(InterruptedException ignored){}
+//		}
+//		return currQ.remove();
+
+
+
+		LinkedBlockingQueue<Message> q = micros.get(m);
+		if (q == null) {
+			throw new IllegalArgumentException("MicroService is not registered");
 		}
-		return currQ.remove();
+		Message msg = null;
+		synchronized (q) {
+			try {
+				msg = q.take();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		return msg;
 	}
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////
 	private boolean isRegistered(MicroService m){
-		return microMap.get(m)!=null;
+		return microEvent.get(m)!=null;
 	}
 
-	public void registerQueues() {
-		//Queue<MicroService> QMicro=new LinkedList<>();
-//		Queue<MicroService> DetectedObjectsEvent=new LinkedList<>();
-//		Queue<MicroService> DetectedObjectsEvent=new LinkedList<>();
-//		Queue<MicroService> QMicro=new LinkedList<>();
-//		Queue<MicroService> QMicro=new LinkedList<>();
-//		Queue<MicroService> QMicro=new LinkedList<>();
-//		Queue<MicroService> QMicro=new LinkedList<>();
 
 	}
 
 	
 
-}
+

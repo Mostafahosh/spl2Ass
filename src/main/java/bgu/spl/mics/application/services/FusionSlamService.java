@@ -11,6 +11,8 @@ import bgu.spl.mics.application.objects.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
 
 /**
  * FusionSlamService integrates data from multiple sensors to build and update
@@ -23,6 +25,7 @@ public class FusionSlamService extends MicroService {
     /////fields/////
     private FusionSlam fusionSlam;
     private int tick;
+    private CountDownLatch latch;
     ///////////////
 
     /**
@@ -30,10 +33,11 @@ public class FusionSlamService extends MicroService {
      *
      * @param fusionSlam The FusionSLAM object responsible for managing the global map.
      */
-    public FusionSlamService(FusionSlam fusionSlam , int time) {
+    public FusionSlamService(FusionSlam fusionSlam , int time , CountDownLatch latch) {
         super("FusionSlam");
         this.fusionSlam =fusionSlam;
         this.tick = time;
+        this.latch = latch;
     }
 
     /**
@@ -43,19 +47,26 @@ public class FusionSlamService extends MicroService {
      */
     @Override
     protected void initialize() {
-        subscribeBroadcast(TickBroadcast.class, callback ->{
-                //should wait until all data of all services is available
-                tick++;
-                }
-        );
+        subscribeBroadcast(TickBroadcast.class, callback -> {
+
+            //should wait until all data of all services is available
+            //tick++;
+//            try {
+//                latch.await();
+//            } catch (InterruptedException e) {
+//                Thread.currentThread().interrupt();
+//            }
+//             }
+            latch.countDown();
+        });
 
 
-        subscribeEvent(TrackedObjectsEvent.class, callback -> {
-            List<TrackedObject> trackedObjects = callback.getTrackedObjects();
-
+        subscribeEvent(TrackedObjectsEvent.class, event -> {
+            List<TrackedObject> trackedObjects = event.getTrackedObjects();
+            System.out.println("TrackedObjects size :"+trackedObjects.size());
             for (TrackedObject obj : trackedObjects) {
 
-                Pose pose = fusionSlam.getPose(tick);
+                Pose pose = fusionSlam.getPose(GlobalTime.getInstance().getGlobalTime());
 
                 List<CloudPoint> globalPointsList = new ArrayList<>();
 
@@ -86,20 +97,23 @@ public class FusionSlamService extends MicroService {
                     gPoints.get(i).setY(newY);
                 }}
             }
+            complete(event,true);
         });
 
 
 
-        subscribeEvent(PoseEvent.class, callback ->{
+        subscribeEvent(PoseEvent.class, event ->{
             //should be synchronized
-            Pose pose = callback.getPose();
+            Pose pose = event.getPose();
             fusionSlam.addPose(pose);
+            complete(event,true);
             }
         );
 
         subscribeBroadcast(TerminatedBroadcast.class, callback ->{
+            System.out.println("it's time for " + this.getName() + " Service to subscribe to TerminateBroadCast");
 
-                    terminate();
+            terminate();
                 }
         );
 
