@@ -94,7 +94,7 @@ public class CameraService extends MicroService {
                         lastObj = stampObj;
 
                         sendEvent(event);
-                        System.out.println(this.getName() + " sends DetectObjectEvent at time: " + GlobalTime.getInstance().getGlobalTime() + " with stamped objects: ");
+                        //System.out.println(this.getName() + " sends DetectObjectEvent at time: " + GlobalTime.getInstance().getGlobalTime() + " with stamped objects: ");
                         stampObj.printList();
                         break;
                     }
@@ -102,7 +102,7 @@ public class CameraService extends MicroService {
             }
             //if other sensor crashed - update last object detected by the camera
             else { //maybe not necessary - underStand why not going here or yes indeed interring the else
-                System.out.println("im in the else CameraCrash");
+                //System.out.println("im in the else CameraCrash");
                 convertJavaCrash.getInstance().setLastCamerasFrame(lastObj);
                 terminate();}
             }
