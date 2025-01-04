@@ -76,7 +76,6 @@ public class MessageBusImpl implements MessageBus {
 				ConcurrentLinkedQueue<MicroService> Q = broadMicro.get(type);
 				if (Q != null){
 					Q.add(m);
-					System.out.println("here im subscribed!");
 				}
 			}
 		}
@@ -95,13 +94,13 @@ public class MessageBusImpl implements MessageBus {
 				//System.out.println("im in the if statement - MsgBus line 92");
 
 				ConcurrentLinkedQueue<MicroService> micro = broadMicro.get(b.getClass());
-				System.out.println("the sizeOF TickBroadCAst Q is: " + micro.size());
+				//System.out.println("the sizeOF TickBroadCAst Q is: " + micro.size());
 				for (MicroService microService : micro) {
-					System.out.println("im " + microService.getName() + " subscribed to TickBroadCast");
+					//System.out.println("im " + microService.getName() + " subscribed to TickBroadCast");
 					LinkedBlockingQueue<Message> Q = micros.get(microService);
 
 					boolean sign = Q != null;
-					System.out.println("is Q != null: " + sign);
+					//System.out.println("is Q != null: " + sign);
 
 					if (Q != null) {
 						Q.add(b);

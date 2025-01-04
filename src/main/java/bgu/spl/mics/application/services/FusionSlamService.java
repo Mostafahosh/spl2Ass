@@ -1,10 +1,11 @@
 package bgu.spl.mics.application.services;
 
 import bgu.spl.mics.MicroService;
+import bgu.spl.mics.application.JavaToJson.convertJavaCrash;
+import bgu.spl.mics.application.JavaToJson.Statistics;
 import bgu.spl.mics.application.Messages.Broadcasts.CrashedBroadcast;
 import bgu.spl.mics.application.Messages.Broadcasts.TerminatedBroadcast;
 import bgu.spl.mics.application.Messages.Broadcasts.TickBroadcast;
-import bgu.spl.mics.application.Messages.Events.DetectObjectEvent;
 import bgu.spl.mics.application.Messages.Events.PoseEvent;
 import bgu.spl.mics.application.Messages.Events.TrackedObjectsEvent;
 import bgu.spl.mics.application.objects.*;
@@ -26,6 +27,9 @@ public class FusionSlamService extends MicroService {
     private FusionSlam fusionSlam;
     private int tick;
     private CountDownLatch latch;
+    private CyclicBarrier barrier;
+    private int duration;
+
     ///////////////
 
     /**
@@ -33,11 +37,13 @@ public class FusionSlamService extends MicroService {
      *
      * @param fusionSlam The FusionSLAM object responsible for managing the global map.
      */
-    public FusionSlamService(FusionSlam fusionSlam , int time , CountDownLatch latch) {
+    public FusionSlamService(FusionSlam fusionSlam , int time , CountDownLatch latch ,CyclicBarrier barrier , int duration) {
         super("FusionSlam");
         this.fusionSlam =fusionSlam;
         this.tick = time;
         this.latch = latch;
+        this.barrier = barrier;
+        this.duration = duration;
     }
 
     /**
@@ -47,26 +53,22 @@ public class FusionSlamService extends MicroService {
      */
     @Override
     protected void initialize() {
-        subscribeBroadcast(TickBroadcast.class, callback -> {
-
-            //should wait until all data of all services is available
-            //tick++;
-//            try {
-//                latch.await();
-//            } catch (InterruptedException e) {
-//                Thread.currentThread().interrupt();
-//            }
-//             }
-            latch.countDown();
-        });
+        System.out.println("FusionSlam is initialized");
 
 
         subscribeEvent(TrackedObjectsEvent.class, event -> {
-            List<TrackedObject> trackedObjects = event.getTrackedObjects();
-            System.out.println("TrackedObjects size :"+trackedObjects.size());
+
+            //insures no other service is crashed
+            if (!GlobalCrashed.getInstance().getCrahs()){
+
+
+
+                List<TrackedObject> trackedObjects = event.getTrackedObjects();
+            //System.out.println("TrackedObjects size :"+trackedObjects.size());
             for (TrackedObject obj : trackedObjects) {
 
-                Pose pose = fusionSlam.getPose(GlobalTime.getInstance().getGlobalTime());
+                Pose pose = fusionSlam.getPose(event.getTime());
+                //System.out.println("the pose of the robot at time: " + event.getTime() + " & pose: " + pose.toString());
 
                 List<CloudPoint> globalPointsList = new ArrayList<>();
 
@@ -81,6 +83,13 @@ public class FusionSlamService extends MicroService {
                     if (!FusionSlam.getInstance().isObjectAvailable(obj)){
                         LandMark landMark = new LandMark(obj.getId(), obj.getDescription(), globalPointsList);
                         fusionSlam.addLandMark(landMark);
+                        StatisticalFolder.getInstance().incrementNumberOfLandmarks();
+
+                        //System.out.println("landMArk " + landMark.getId() + " created for the first Time! with Coordinates: " + "(List<LandMArk> size = " + fusionSlam.getLandMarks().size() + ")");
+                        if (landMark.getList().size() > 0){
+                        //System.out.println("landMark " + landMark.getId() +  " = " + landMark.getList().get(0));
+                        }
+
                     }
 
 
@@ -95,10 +104,30 @@ public class FusionSlamService extends MicroService {
 
                     gPoints.get(i).setX(newX);
                     gPoints.get(i).setY(newY);
-                }}
+                }
+                System.out.println("landMArk " + landMark.getId() + " was createdBefore , it's new Coordinates is: " + "(List<LandMArk> size = " + fusionSlam.getLandMarks().size() + ")");
+                landMark.printLandMArkCoordinates();
             }
-            complete(event,true);
-        });
+
+
+            }
+
+//            complete(event,true);
+//            try {
+//                System.out.println(this.getName() + " is waiting at the barrier...");
+//                barrier.await();
+//                System.out.println("Fusion Done waiting!");
+//            }
+//            catch (Exception e) {
+//                System.out.println(this.getName() + " has passed the barrier!");
+//            }
+        }
+            else {
+                Statistics s = new Statistics();
+                s.setStatisticalFolder(StatisticalFolder.getInstance());
+                s.setLandMarks(fusionSlam.getLandMarks());
+                convertJavaCrash.getInstance().setStatistics(s);
+                terminate();}});
 
 
 
@@ -107,18 +136,23 @@ public class FusionSlamService extends MicroService {
             Pose pose = event.getPose();
             fusionSlam.addPose(pose);
             complete(event,true);
+            //barrier.reset();
             }
         );
 
         subscribeBroadcast(TerminatedBroadcast.class, callback ->{
-            System.out.println("it's time for " + this.getName() + " Service to subscribe to TerminateBroadCast");
-
             terminate();
                 }
         );
 
         subscribeBroadcast(CrashedBroadcast.class, callback ->{
-                    //error
+            Statistics s = new Statistics();
+            s.setStatisticalFolder(StatisticalFolder.getInstance());
+            s.setLandMarks(fusionSlam.getLandMarks());
+            convertJavaCrash.getInstance().setStatistics(s);
+            terminate();
+
+
                 }
         );
     }

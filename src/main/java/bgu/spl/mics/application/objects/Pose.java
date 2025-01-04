@@ -23,7 +23,7 @@ public class Pose {
     public int getTime() {return time;}
 
     public String toString(){
-        return "pose at time " + time + " with x = " + x + " y = " + y + " yaw = " + yaw;
+        return "x = " + x + " y = " + y + " yaw = " + yaw;
     }
 
     public void setX(double x) {this.x = x;}

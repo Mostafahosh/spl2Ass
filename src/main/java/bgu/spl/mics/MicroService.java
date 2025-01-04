@@ -93,7 +93,6 @@ public abstract class MicroService implements Runnable {
      *                 queue.
      */
     protected final <B extends Broadcast> void subscribeBroadcast(Class<B> type, Callback<B> callback) {
-        System.out.println("im in the micro service subscribeBroadCast - " + this.getName() + " to sub to TickBroadCast");
         messageBus.subscribeBroadcast(type,this);
         broadCallback.put(type.getName(),callback);
     }
@@ -111,8 +110,8 @@ public abstract class MicroService implements Runnable {
      * 	       			null in case no micro-service has subscribed to {@code e.getClass()}.
      */
     protected final <T> Future<T> sendEvent(Event<T> e) {
-        if(e.getClass() == DetectObjectEvent.class){statisticalFolder.incrementNumberOfDetectedObjects(1);}
-        else if(e.getClass() == TrackedObjectsEvent.class){statisticalFolder.incrementNumberOfTrackedObjects(((TrackedObjectsEvent) e).getTrackedObjects().size());}
+//        if(e.getClass() == DetectObjectEvent.class){statisticalFolder.incrementNumberOfDetectedObjects(1);}
+//        else if(e.getClass() == TrackedObjectsEvent.class){statisticalFolder.incrementNumberOfTrackedObjects(((TrackedObjectsEvent) e).getTrackedObjects().size());}
         return messageBus.sendEvent(e);
 
 
@@ -155,7 +154,7 @@ public abstract class MicroService implements Runnable {
      * message.
      */
     protected final void terminate() {
-        System.out.println(this.getName() + "isTerminated");
+        System.out.println(this.getName() + " is Terminated");
         this.terminated = true;
     }
 
@@ -198,29 +197,6 @@ public abstract class MicroService implements Runnable {
         }
         messageBus.unregister(this);
 
-
-
-
-
-
-
-
-//        messageBus.register(this);
-//        initialize();
-//        while (!terminated) {
-//            Message msg = messageBus.awaitMessage(this);
-//            Callback callback = eventMapCallback.get(msg.getClass().getName());
-//            if (callback != null) {
-//                callback.call(msg);}
-//
-//            else {callback = broadMapCallback.get(msg.getClass().getName());
-//                if (callback != null) {
-//                    callback.call(msg);
-//                }
-//            }
-//
-//        }
-//        messageBus.unregister(this);
     }
 
 }

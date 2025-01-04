@@ -33,9 +33,10 @@ public class FusionSlam {
     public List<LandMark> getLandMarks(){return landmarks;}
     public List<Pose> getPoses(){return poses;}
     public List<TrackedObject> getObjects(){return trackedObjects;}
+
     public boolean isObjectAvailable(TrackedObject instance){
         for (LandMark obj : landmarks){
-            if (obj.getId().equals(instance.getId())){return true;}
+            if (obj.getId().equals(instance.getId()) ){return true;}
         }
         return false;
     }
@@ -47,7 +48,15 @@ public class FusionSlam {
         return null;
     }
     public void addTrackedObj(TrackedObject obj){trackedObjects.add(obj);}
-    public Pose getPose(int tick){for (Pose pose : poses) {if(pose.getTime() == tick){return pose;}}return null;}
+
+    public Pose getPose(int tick){
+        for (Pose pose : poses) {
+        if(pose.getTime() == tick){
+            return pose;}
+        }
+    return null;
+    }
+
 
 
     public CloudPoint mathCalc(double x , double y , Pose pose){
@@ -62,21 +71,21 @@ public class FusionSlam {
         double yRotated;
 
         double deltaRad = deltaDegree * (float) Math.PI / 180;
-        System.out.println("deltaRad = " + deltaRad);
-        System.out.println("____");
+        //System.out.println("deltaRad = " + deltaRad);
+        //System.out.println("____");
 
         double cos = Math.cos(deltaRad);
-        System.out.println("cos = " + cos);
+        //System.out.println("cos = " + cos);
         double sin = Math.sin(deltaRad);
-        System.out.println("sin = " + sin);
+        //System.out.println("sin = " + sin);
 
         xRotated = (cos*xLocal) - (sin*yLocal);
         yRotated = (sin*xLocal) + (cos*yLocal);
 
         xGlobal = xRotated + xRobot;
-        System.out.println("xGlobal = " + xGlobal);
+        //System.out.println("xGlobal = " + xGlobal);
         yGlobal = yRotated + yRobot;
-        System.out.println("yGlobal = " + yGlobal);
+        //System.out.println("yGlobal = " + yGlobal);
 
         CloudPoint globalPoint = new CloudPoint(xGlobal, yGlobal);
         return globalPoint;

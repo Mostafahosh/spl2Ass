@@ -3,6 +3,7 @@ package bgu.spl.mics.application.services;
 import bgu.spl.mics.Callback;
 import bgu.spl.mics.Event;
 import bgu.spl.mics.MicroService;
+import bgu.spl.mics.application.JavaToJson.convertJavaCrash;
 import bgu.spl.mics.application.Messages.Broadcasts.CrashedBroadcast;
 import bgu.spl.mics.application.Messages.Broadcasts.TerminatedBroadcast;
 import bgu.spl.mics.application.Messages.Broadcasts.TickBroadcast;
@@ -31,6 +32,9 @@ public class LiDarService extends MicroService {
     private int time;
     private int tick;
     private CountDownLatch latch;
+    private CyclicBarrier barrier;
+    private int duration;
+    private List<TrackedObject> lastObj;
     ////////////////
 
     /**
@@ -38,12 +42,16 @@ public class LiDarService extends MicroService {
      *
      * @param LiDarWorkerTracker A LiDAR Tracker worker object that this service will use to process data.
      */
-    public LiDarService(LiDarWorkerTracker LiDarWorkerTracker , int tick , CountDownLatch latch) {
+    public LiDarService(LiDarWorkerTracker LiDarWorkerTracker , int tick , CountDownLatch latch ,CyclicBarrier barrier , int duration) {
         super("Lidar" + LiDarWorkerTracker.getId());
         this.lidar = LiDarWorkerTracker;
         time = 0;
         this.tick=tick;
         this.latch = latch;
+        this.barrier = barrier;
+        this.duration = duration;
+        lastObj = new ArrayList<>();
+
     }
 
     /**
@@ -53,85 +61,148 @@ public class LiDarService extends MicroService {
      */
     @Override
     protected void initialize() {
-        //handling DetectObjectEvent
+        System.out.println("lidar" + lidar.getId() + " is initialized with frequency = " + lidar.getFrequency());
+
+
         subscribeEvent(DetectObjectEvent.class , event -> {
 
-            //case1 - object was never detected before
-//           if (lidar.isObjectDetected(event.getId())) {
+            //insures no other service is crashed
+            if (!GlobalCrashed.getInstance().getCrahs()) {
 
-                //this two lines should have the same tickTime
-                StampedDetectedObjects objects = event.getObj(GlobalTime.getInstance().getGlobalTime());
 
-                System.out.println("im " + this.getName() + "with stamped: ");
-                objects.printList();
+                //getting the DetectedObjects needed to handle
+                StampedDetectedObjects stampedObjects = event.getObj();
+                List<DetectedObject> list = stampedObjects.getDetectedObjects();
 
-                List<DetectedObject> list = objects.getDetectedObjects();
-
-                //the last objects the lidar tracked
-                lidar.clearList();
 
                 for (DetectedObject o : list) {
 
-                    //returns a stampedDetectedObject matching the ID object
-                    //points & detected objects "is the same"
-                    StampedCloudPoints points = LiDarDataBase.getObject(o.getId());
+                    //check is lidar crashed at this time
+                    StampedCloudPoints point_crash = LiDarDataBase.getObject("ERROR", event.getObj().getTime());
+                    if (point_crash != null) {
+                        System.out.println("LIDAR_ERROR");
+                        convertJavaCrash.getInstance().setError("Lidar disconnected");
+                        convertJavaCrash.getInstance().setFaultySensor("lidar" + lidar.getId());
+                        convertJavaCrash.getInstance().setLastLiDarWorkerTrackersFrame(lastObj);
+                        GlobalCrashed.getInstance().setCrash();
+                        sendBroadcast(new CrashedBroadcast());
+                        terminate();
+                        return;
+                    }
+                //}
 
-                    TrackedObject trackedObject = new TrackedObject(o.getId(), GlobalTime.getInstance().getGlobalTime(), o.getDescription());
+//                //cleaning the list to hold only last tracked objects in the correct time
+//                lastObj.clear();
+//
+//                for(DetectedObject o:list) {
+//                    //bring the object cloudPoints from the lidarDataBase according to his id
+//                    StampedCloudPoints points = LiDarDataBase.getObject(o.getId() , event.getObj().getTime());
+//
+//                    //create tracked object for the detected object
+//                    TrackedObject trackedObject = new TrackedObject(o.getId(), points.getTime() , o.getDescription());
+//                    List<CloudPoint> cloudPoints = points.getCloudPoints(); //points of the object
+//                    for (CloudPoint p : cloudPoints) {
+//                        trackedObject.addCoordinate(p);
+//                        //trackedObject_CamFreq.addCoordinate(p);
+//                    }
+//                    lastObj.add(trackedObject);
+//                    lidar.add(trackedObject);
+//
+//                    //for each lidar that detected an object , fusion slam should know that object was detected
+//                   //because we need the pose when the camera detected the event not including her frequency
+//                    FusionSlam.getInstance().addTrackedObj(trackedObject);
+//                }
+//                complete(event,true);
+
+                    //bring the object cloudPoints from the lidarDataBase according to his id
+                   StampedCloudPoints points = LiDarDataBase.getObject(o.getId() , event.getObj().getTime());
+
+
+                    //cleaning the list to hold only last tracked objects in the correct time (-1 for not delete objects on the same time)
+                    if (lastObj.size() > 0 && lastObj.get(0).getTime() < GlobalTime.getInstance().getGlobalTime() - 1){
+                        lastObj.clear();
+                        lidar.clearList();
+                    }
+
+                    //create tracked object for the detected object
+                    TrackedObject trackedObject = new TrackedObject(o.getId(), points.getTime() , o.getDescription());
+                    //TrackedObject trackedObject_CamFreq = new TrackedObject(o.getId(), points.getTime() + event.getCameraFreq() , o.getDescription());
 
                     List<CloudPoint> cloudPoints = points.getCloudPoints(); //points of the object
                     for (CloudPoint p : cloudPoints) {
                         trackedObject.addCoordinate(p);
+                        //trackedObject_CamFreq.addCoordinate(p);
                     }
+
+                    //because we need to include cam freq when sending a lidar TrackedObjectEvent
                     lidar.add(trackedObject);
+                    lastObj.add(trackedObject);
 
                     //for each lidar that detected an object , fusion slam should know that object was detected
+                    //because we need the pose when the camera detected the event not including her frequency
                     FusionSlam.getInstance().addTrackedObj(trackedObject);
                 }
+
                 complete(event,true);
-//            }
-            //case2 - object was detected before - we do average
-            //else {} - should not be here , should be when doing landMark in the fusionSlam
-        });
+
+        }
+            else {
+                convertJavaCrash.getInstance().setLastLiDarWorkerTrackersFrame(lastObj);
+        terminate();}});
 
 
 
         subscribeBroadcast(TickBroadcast.class, callback -> {
-                    //time += tick; //again is thick++ needs to be here , and how we maintain sync of all times ?!
 
-                    List<TrackedObject> trackedObjectList = lidar.getList();
+            //insures no other service is crashed
+            if (!GlobalCrashed.getInstance().getCrahs()) {
 
-                        System.out.println("myListSize: " + trackedObjectList.size());
-                        List<TrackedObject> sendObjects = new ArrayList<>();
+                //search for any DetectedObject with timeDetect + lidarFrequency == currentTime to send TrackedObjectEvent
+                List<TrackedObject> trackedObjectList = lidar.getList();
+                List<TrackedObject> sendObjects = new ArrayList<>();
+
+                //should we remove the object for efficiency ?
+                //System.out.println("TrackedObjLidarList of Size = " + trackedObjectList.size());
+                for (TrackedObject o : trackedObjectList) {
 
 
+                     if (o.getTime() + lidar.getFrequency() <= GlobalTime.getInstance().getGlobalTime()) {
+                        //System.out.println(o.getId()+ " wasTacked in time: " + GlobalTime.getInstance().getGlobalTime());
+                        StatisticalFolder.getInstance().incrementNumberOfTrackedObjects();
+                        //lidar.getList().remove(o);
 
-            //should we remove the object for efficiency ?
-            for (TrackedObject o : trackedObjectList) {
-                System.out.println("o.getTime: " + o.getTime());
-                System.out.println("time = " + GlobalTime.getInstance().getGlobalTime());
-                if (o.getTime() + lidar.getFrequency() == GlobalTime.getInstance().getGlobalTime()) {
-                                sendObjects.add(o);
-                                System.out.println("");
+
+                         sendObjects.add(o);
+                     }
                 }
-            }
-            sendEvent(new TrackedObjectsEvent(sendObjects));
-//            try {
-//                latch.await();
-//            } catch (InterruptedException e) {
-//                Thread.currentThread().interrupt();
-//            }
-            latch.countDown();
+                System.out.println(this.getName() + " sends TrackedObjectEvent at time: " + GlobalTime.getInstance().getGlobalTime() + " with these objects: " + "(sendObjects.Size() = " + sendObjects.size() +")");
+
+
+                //lastObject = sendObjects;
+                convertJavaCrash.getInstance().setLastLiDarWorkerTrackersFrame(lastObj);
+
+
+
+                sendEvent(new TrackedObjectsEvent(sendObjects, GlobalTime.getInstance().getGlobalTime() - lidar.getFrequency()));
+              }
+            else {
+                convertJavaCrash.getInstance().setLastLiDarWorkerTrackersFrame(lastObj);
+            terminate();}
         });
 
+
+
         subscribeBroadcast(TerminatedBroadcast.class, callback ->{
-            System.out.println("it's time for " + this.getName() + " Service to subscribe to TerminateBroadCast");
             terminate();
                 }
         );
 
+
+
         subscribeBroadcast(CrashedBroadcast.class, callback ->{
-                    //error
-                }
+            convertJavaCrash.getInstance().setLastLiDarWorkerTrackersFrame(lastObj);
+            terminate();}
+
         );
     }
 

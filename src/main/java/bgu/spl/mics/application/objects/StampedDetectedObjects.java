@@ -30,12 +30,14 @@ public class StampedDetectedObjects {
         System.out.println("detected objects at time " + time + " and objects: ");
         printList();
     }
+    public int getSize(){return detectedObjects.size();}
 
     public void printList() {
         for (DetectedObject object : detectedObjects) {
             System.out.println(object);
         }
     }
+    public void setTime(int num){time = num;}
 
 
 }

@@ -76,9 +76,9 @@ public class LiDarDataBase {
         return instance;
     }
 
-    public static StampedCloudPoints getObject(String id) {
+    public static StampedCloudPoints getObject(String id , int time) {
         for (StampedCloudPoints obj : list) {
-            if (obj.getId().equals(id)) {
+            if (obj.getId().equals(id) & obj.getTime() == time) {
                 return obj;
             }
         }

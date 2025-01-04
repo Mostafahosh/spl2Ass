@@ -1,5 +1,8 @@
 package bgu.spl.mics.application.objects;
 
+import bgu.spl.mics.application.JavaToJson.convertJavaCrash;
+import bgu.spl.mics.application.Messages.Broadcasts.CrashedBroadcast;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -53,6 +56,7 @@ public class LiDarWorkerTracker {
     public void toStringL(){
         System.out.println("lidar: " + id);
         }
+
 
 
 

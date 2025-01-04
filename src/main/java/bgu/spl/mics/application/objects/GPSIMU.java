@@ -16,17 +16,14 @@ import java.util.List;
  */
 
 public class GPSIMU {
-    private int currentTick;
     private STATUS status;
     private List<Pose> list;
 
-    public GPSIMU(int currentTick) {
-        this.currentTick = currentTick;
+    public GPSIMU() {
         this.status = STATUS.UP;
         this.list = Collections.synchronizedList(new ArrayList<>());
     }
 
-    public int getCurrentTick() {return currentTick;}
     public void add(Pose obj){list.add(obj);}
     public STATUS getStatus() {return status;}
     public void setStatus(STATUS status) {this.status = status;}
@@ -42,6 +39,10 @@ public class GPSIMU {
             }
         }
         return null; //should never return null
+    }
+
+    public int getLastTime(){
+        return list.get(list.size()-1).getTime();
     }
 
     public void print() {

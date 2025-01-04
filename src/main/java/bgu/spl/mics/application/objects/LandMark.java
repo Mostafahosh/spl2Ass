@@ -22,5 +22,11 @@ public class LandMark {
     public List<CloudPoint> getList() {return coordinates;}
     public void setList(List<CloudPoint> list) {this.coordinates = list;}
 
+    public void printLandMArkCoordinates(){
+        for (CloudPoint c : coordinates){
+            c.toString();
+        }
+    }
+
 
 }

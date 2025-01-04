@@ -12,21 +12,19 @@ public class DetectObjectEvent implements Event<Boolean> {
     /////fields/////
     private StampedDetectedObjects obj;
     private String id;
-    private int time; //maybe not necessary
+    private int cameraFreq;
+
     /////////////////
 
-    public DetectObjectEvent(StampedDetectedObjects obj , int time) {
+    public DetectObjectEvent(StampedDetectedObjects obj , int cameraFreq) {
         this.obj = obj;
-        this.time = time;
-
+        this.cameraFreq = cameraFreq;
     }
 
-public int getTime() {return time;}
 
     public String getId() {return id;}
-    public StampedDetectedObjects getObj(int time) {return obj;}
-    //input time just to make it more clear when calling the function
-
+    public StampedDetectedObjects getObj() {return obj;}
+    public int getCameraFreq(){return cameraFreq;}
 
 
 }
