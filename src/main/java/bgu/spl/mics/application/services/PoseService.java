@@ -24,10 +24,8 @@ public class PoseService extends MicroService {
 /////fields/////
    private GPSIMU gpsimu;
    private int tick;
-   private CountDownLatch latch;
-   private CyclicBarrier barrier;
    private int duration;
-   int counter = 0;
+   int counter = 1;
    List<Pose> poses;
 ////////////////
 
@@ -37,12 +35,11 @@ public class PoseService extends MicroService {
      *
      * @param gpsimu The GPSIMU object that provides the robot's pose data.
      */
-    public PoseService(GPSIMU gpsimu , int tick , CountDownLatch latch ,CyclicBarrier barrier , int duration) {
+    public PoseService(GPSIMU gpsimu , int tick  , int duration) {
         super("GPSIMU");
         this.gpsimu = gpsimu;
         this.tick = tick; //simulation not necessary starts from tick 1
-        this.latch = latch;
-        this.barrier = barrier;
+
         this.duration = duration;
         this.poses = new ArrayList<>();
 
@@ -63,9 +60,9 @@ public class PoseService extends MicroService {
             //insures no other service is crashed
             if (!GlobalCrashed.getInstance().getCrahs()){
 
-                if (GlobalTime.getInstance().getGlobalTime() <= gpsimu.getLastTime()){
+                if (counter <= gpsimu.getLastTime()){
             Pose pose;
-            pose = gpsimu.findPose(GlobalTime.getInstance().getGlobalTime());
+            pose = gpsimu.findPose(counter);
             poses.add(pose);
             PoseEvent event = new PoseEvent(pose);
             counter +=1;
@@ -86,17 +83,7 @@ public class PoseService extends MicroService {
 
         }
 
-        try {
-            // If it's the last tick, decrement the latch
-            //System.out.println("Time in pose = " + GlobalTime.getInstance().getGlobalTime());
-            if (GlobalTime.getInstance().getGlobalTime() == duration) {
-                //System.out.println(this.getName() + " is completing the last tick...");
-                latch.countDown();
-            }
-        }catch(Exception e){
-            System.err.println("TimeService encountered an issue: " + e.getMessage());
-            Thread.currentThread().interrupt();
-        }
+
 
         }
             else {

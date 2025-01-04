@@ -42,8 +42,8 @@ public class TrackedObject {
     public void addCoordinate(CloudPoint point) {coordinates.add(point);}
     public List<CloudPoint> getCoordinates() {return coordinates;}
 
-    public void toString_lidar(){
-        System.out.println("lidar: " + id);
+    public void print(){
+        System.out.println(id + " with time: " + time);
     }
 
 

@@ -37,12 +37,11 @@ public class CameraService extends MicroService {
      *
      * @param camera The Camera object that this service will use to detect objects.
      */
-    public CameraService(Camera camera, int tick, CountDownLatch latch , CyclicBarrier barrier , int duration) {
+    public CameraService(Camera camera, int tick , int duration) {
         super("camera " + camera.get_id());
         this.camera = camera;
         this.tick = tick;
-        this.latch = latch;
-        this.barrier = barrier;
+
         this.duration = duration;
 
     }

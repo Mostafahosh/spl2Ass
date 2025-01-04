@@ -16,4 +16,10 @@ public class TrackedObjectsEvent implements Event<Boolean> {
     public List<TrackedObject> getTrackedObjects() {return trackedObjects;}
     public int getTime(){return time;}
 
+    public void print(){
+        for (TrackedObject t : trackedObjects){
+            t.print();
+        }
+    }
+
 }

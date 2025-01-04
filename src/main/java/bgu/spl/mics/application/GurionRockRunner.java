@@ -97,7 +97,7 @@ public static List<Thread> parseConfigData(String filepath , Map<String, List<St
             List<StampedDetectedObjects> lst = map.get(c.getCamera_key());
             c.setList(lst);
 
-            CameraService camService = new CameraService(c , configuration.getTickTime() , latch , barrier , configuration.getDuration());
+            CameraService camService = new CameraService(c , configuration.getTickTime()  , configuration.getDuration());
             threads.add(new Thread(camService));
         }
 
@@ -107,26 +107,26 @@ public static List<Thread> parseConfigData(String filepath , Map<String, List<St
         for (LiDarWorkerTracker l : lidars){
             LiDarWorkerTracker lidar = new LiDarWorkerTracker(l.getId() , l.getFrequency());
 
-            MicroService lidarService = new LiDarService(lidar , configuration.getTickTime() , latch ,barrier , configuration.getDuration());
+            MicroService lidarService = new LiDarService(lidar , configuration.getTickTime()  , configuration.getDuration());
             threads.add(new Thread(lidarService));
         }
 
 
         //pose initialize
         GPSIMU GI = gpsimu;
-        MicroService poseService = new PoseService(GI , configuration.getTickTime() , latch ,barrier , configuration.getDuration());
+        MicroService poseService = new PoseService(GI , configuration.getTickTime()  , configuration.getDuration());
         threads.add(new Thread(poseService));
 
 
 
         //TimeService initialize
-        MicroService timeService = new TimeService(configuration.getTickTime(), configuration.getDuration() , latch , barrier);
+        MicroService timeService = new TimeService(configuration.getTickTime(), configuration.getDuration() );
         Thread t = new Thread(timeService);
         threads.add(t);
 
 
         //fusionSlam initialize
-        MicroService fusionService = new FusionSlamService(FusionSlam.getInstance() , configuration.getTickTime() , latch ,barrier , configuration.getDuration());
+        MicroService fusionService = new FusionSlamService(FusionSlam.getInstance() , configuration.getTickTime()  , configuration.getDuration());
         threads.add(new Thread(fusionService));
     }
     catch (IOException e) {

@@ -26,8 +26,7 @@ public class FusionSlamService extends MicroService {
     /////fields/////
     private FusionSlam fusionSlam;
     private int tick;
-    private CountDownLatch latch;
-    private CyclicBarrier barrier;
+
     private int duration;
 
     ///////////////
@@ -37,12 +36,11 @@ public class FusionSlamService extends MicroService {
      *
      * @param fusionSlam The FusionSLAM object responsible for managing the global map.
      */
-    public FusionSlamService(FusionSlam fusionSlam , int time , CountDownLatch latch ,CyclicBarrier barrier , int duration) {
+    public FusionSlamService(FusionSlam fusionSlam , int time  , int duration) {
         super("FusionSlam");
         this.fusionSlam =fusionSlam;
         this.tick = time;
-        this.latch = latch;
-        this.barrier = barrier;
+
         this.duration = duration;
     }
 
@@ -62,12 +60,25 @@ public class FusionSlamService extends MicroService {
             if (!GlobalCrashed.getInstance().getCrahs()){
 
 
-
                 List<TrackedObject> trackedObjects = event.getTrackedObjects();
             //System.out.println("TrackedObjects size :"+trackedObjects.size());
             for (TrackedObject obj : trackedObjects) {
+                //System.out.println("Tracked obj time = " + obj.getTime());
 
-                Pose pose = fusionSlam.getPose(event.getTime());
+                System.out.println("TrackedObject is: " + obj.getId() + " with time: " + obj.getTime());
+                System.out.println("ListPoses.Size() = " + fusionSlam.getPoses().size());
+
+
+                Pose pose = fusionSlam.getPose(obj.getTime());
+                while (pose == null){
+                    if (GlobalTime.getInstance().getGlobalTime() == duration){
+                        System.out.println("fusionSlam is Terminated");
+                        return;
+                    }
+
+                    //Thread.sleep(50);
+                     pose = fusionSlam.getPose(obj.getTime());
+                }
                 //System.out.println("the pose of the robot at time: " + event.getTime() + " & pose: " + pose.toString());
 
                 List<CloudPoint> globalPointsList = new ArrayList<>();

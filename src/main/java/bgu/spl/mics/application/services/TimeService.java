@@ -31,12 +31,10 @@ public class TimeService extends MicroService {
      * @param TickTime The duration of each tick in milliseconds.
      * @param Duration The total number of ticks before the service terminates.
      */
-    public TimeService(int TickTime, int Duration, CountDownLatch latch, CyclicBarrier barrier) {
+    public TimeService(int TickTime, int Duration) {
         super("TimeService");
         this.tickTime = TickTime;
         this.duration = Duration;
-        this.latch = latch;
-        this.barrier = barrier;
     }
 
     /**
