@@ -1,5 +1,6 @@
 package bgu.spl.mics.application.objects;
 
+import bgu.spl.mics.application.Messages.Events.TrackedObjectsEvent;
 import bgu.spl.mics.application.services.FusionSlamService;
 
 import java.util.ArrayList;
@@ -19,11 +20,13 @@ public class FusionSlam {
     private List<LandMark> landmarks;
     private List<Pose> poses;
     private List<TrackedObject> trackedObjects;
+    private List<TrackedObjectsEvent> trackedEvents;
 
     public FusionSlam(){
         landmarks=Collections.synchronizedList(new ArrayList<>());
         poses= Collections.synchronizedList(new ArrayList<>());
         trackedObjects =  Collections.synchronizedList(new ArrayList<>());
+        trackedEvents = Collections.synchronizedList(new ArrayList<>());
     }
     public static FusionSlam getInstance(){
         return FusionSlamHolder.instance;
@@ -33,6 +36,21 @@ public class FusionSlam {
     public List<LandMark> getLandMarks(){return landmarks;}
     public List<Pose> getPoses(){return poses;}
     public List<TrackedObject> getObjects(){return trackedObjects;}
+    public TrackedObjectsEvent getTrackedEvent(int time){
+        for (TrackedObjectsEvent t : trackedEvents){
+            if (t.getTime() == time){
+                return t;
+            }
+        }
+        return null;
+    }
+    public int getTrackedEventsSize(){return trackedEvents.size();}
+
+    public void addTrackedObjectEvent(TrackedObjectsEvent obj){
+        trackedEvents.add(obj);
+    }
+
+    public List<TrackedObjectsEvent> getTrackedEventsList(){return trackedEvents;}
 
     public boolean isObjectAvailable(TrackedObject instance){
         for (LandMark obj : landmarks){
@@ -55,6 +73,14 @@ public class FusionSlam {
             return pose;}
         }
     return null;
+    }
+
+    public boolean isAvailablePose(int time){
+        for (Pose pose : poses) {
+            if(pose.getTime() == time){
+                return true;}
+        }
+        return false;
     }
 
 

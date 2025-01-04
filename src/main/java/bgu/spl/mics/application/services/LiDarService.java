@@ -77,6 +77,8 @@ public class LiDarService extends MicroService {
                 //getting the DetectedObjects needed to handle
                 StampedDetectedObjects stampedObjects = event.getObj();
                 List<DetectedObject> list = stampedObjects.getDetectedObjects();
+                int time = stampedObjects.getTime();
+
 
 
                 for (DetectedObject o : list) {
@@ -111,7 +113,7 @@ public class LiDarService extends MicroService {
                     FusionSlam.getInstance().addTrackedObj(trackedObject);
                 }
 
-                TrackedObjectsEvent tob = new TrackedObjectsEvent(l , 0);
+                TrackedObjectsEvent tob = new TrackedObjectsEvent(l , time);
                 lst.add(tob);
 
 

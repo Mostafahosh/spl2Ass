@@ -51,7 +51,7 @@ public class TimeService extends MicroService {
                 TickBroadcast t = new TickBroadcast();
                 globalTime.increaseGlobaltime(tickTime);
                 sendBroadcast(t);
-                //System.out.println("BroadCastTick was sent at time: " + GlobalTime.getInstance().getGlobalTime());
+                System.out.println("BroadCastTick was sent at time: " + GlobalTime.getInstance().getGlobalTime());
 
                 //System.out.println(this.getName() + " is waiting at the barrier...");
                 Thread.sleep(tickTime * 1000); //Ticks are in seconds
