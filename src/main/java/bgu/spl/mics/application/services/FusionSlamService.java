@@ -11,6 +11,7 @@ import bgu.spl.mics.application.Messages.Events.TrackedObjectsEvent;
 import bgu.spl.mics.application.objects.*;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -27,7 +28,7 @@ public class FusionSlamService extends MicroService {
     /////fields/////
     private FusionSlam fusionSlam;
     private int tick;
-
+    private List<TrackedObjectsEvent> trackedEvents;
     private int duration;
 
     ///////////////
@@ -41,10 +42,13 @@ public class FusionSlamService extends MicroService {
         super("FusionSlam");
         this.fusionSlam =fusionSlam;
         this.tick = time;
-
+        this.trackedEvents= Collections.synchronizedList(new ArrayList<>());
         this.duration = duration;
     }
-
+    private void addTrackedObjectEvent(TrackedObjectsEvent obj){
+        trackedEvents.add(obj);
+    }
+    private List<TrackedObjectsEvent> getTrackedEventsList(){return trackedEvents;}
     /**
      * Initializes the FusionSlamService.
      * Registers the service to handle TrackedObjectsEvents, PoseEvents, and TickBroadcasts,
@@ -66,10 +70,11 @@ public class FusionSlamService extends MicroService {
                     fusionSlam.trackedObjectsToLandMarks(trackedObjects);
                     complete(event, true);
                 }
-            }
-            else {
-                    fusionSlam.addTrackedObjectEvent(event);
+                else {
+                    addTrackedObjectEvent(event);
                 }
+            }
+
         });
 
 
@@ -148,22 +153,14 @@ public class FusionSlamService extends MicroService {
 
         subscribeEvent(PoseEvent.class, event -> {
                     if (!GlobalCrashed.getInstance().getCrahs()) {
-
-
                         Pose pose = event.getPose();
                         fusionSlam.addPose(pose);
 
-                        List<TrackedObjectsEvent> lst = fusionSlam.getTrackedEventsList();
+                        List<TrackedObjectsEvent> lst =getTrackedEventsList();
 
                         Iterator<TrackedObjectsEvent> iterator = lst.iterator();
-
-
                         while (iterator.hasNext()) {
-
                             TrackedObjectsEvent t = iterator.next(); // Get the next event
-
-                            System.out.println("Tracked.time() = " + t.getTime() + "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-
                             int time = t.getTime();
 
                             if (fusionSlam.isAvailablePose(time)) {
@@ -171,25 +168,18 @@ public class FusionSlamService extends MicroService {
                                 fusionSlam.trackedObjectsToLandMarks(trackedObjects);
                                 complete(event, true);
                             }
-
                                 // Safely remove the event from the list after processing
                                 iterator.remove();
-
                             }
 
-
-
                         }
-
-
-
-             else {
-                Statistics s = new Statistics();
-                s.setStatisticalFolder(StatisticalFolder.getInstance());
-                s.setLandMarks(fusionSlam.getLandMarks());
-                convertJavaCrash.getInstance().setStatistics(s);
-                terminate();
-            }
+                    else {
+                        Statistics s = new Statistics();
+                        s.setStatisticalFolder(StatisticalFolder.getInstance());
+                        s.setLandMarks(fusionSlam.getLandMarks());
+                        convertJavaCrash.getInstance().setStatistics(s);
+                        terminate();
+                    }
         });
 
 

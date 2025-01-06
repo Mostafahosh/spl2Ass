@@ -20,13 +20,13 @@ public class FusionSlam {
     private List<LandMark> landmarks;
     private List<Pose> poses;
     private List<TrackedObject> trackedObjects;
-    private List<TrackedObjectsEvent> trackedEvents;
+    //private List<TrackedObjectsEvent> trackedEvents;
 
     public FusionSlam(){
         landmarks=Collections.synchronizedList(new ArrayList<>());
         poses= Collections.synchronizedList(new ArrayList<>());
         trackedObjects =  Collections.synchronizedList(new ArrayList<>());
-        trackedEvents = Collections.synchronizedList(new ArrayList<>());
+        //trackedEvents = Collections.synchronizedList(new ArrayList<>());
     }
     public static FusionSlam getInstance(){
         return FusionSlamHolder.instance;
@@ -40,22 +40,22 @@ public class FusionSlam {
     public List<LandMark> getLandMarks(){return landmarks;}
     public List<Pose> getPoses(){return poses;}
     public List<TrackedObject> getObjects(){return trackedObjects;}
-    public TrackedObjectsEvent getTrackedEvent(int time){
-        for (TrackedObjectsEvent t : trackedEvents){
-            if (t.getTime() == time){
-                return t;
-            }
-        }
-        return null;
-    }
+//    public TrackedObjectsEvent getTrackedEvent(int time){
+//        for (TrackedObjectsEvent t : trackedEvents){
+//            if (t.getTime() == time){
+//                return t;
+//            }
+//        }
+//        return null;
+//    }
 
-    public int getTrackedEventsSize(){return trackedEvents.size();}
+    //public int getTrackedEventsSize(){return trackedEvents.size();}
 
-    public void addTrackedObjectEvent(TrackedObjectsEvent obj){
-        trackedEvents.add(obj);
-    }
+//    public void addTrackedObjectEvent(TrackedObjectsEvent obj){
+//        trackedEvents.add(obj);
+//    }
 
-    public List<TrackedObjectsEvent> getTrackedEventsList(){return trackedEvents;}
+    //public List<TrackedObjectsEvent> getTrackedEventsList(){return trackedEvents;}
 
     public boolean isObjectAvailable(TrackedObject instance){
         for (LandMark obj : landmarks){

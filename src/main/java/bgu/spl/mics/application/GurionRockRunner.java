@@ -39,22 +39,22 @@ public class GurionRockRunner {
 
 
         System.out.println("---------------------------------lidarDataBase--------------------------------");
-        LiDarDataBase l =  LiDarDataBase.getInstance("example_input_2/lidar_data.json");
-        l.getInstance("example_input_2/lidar_data.json");
+        LiDarDataBase l =  LiDarDataBase.getInstance("example input/lidar_data.json");
+        l.getInstance("example input/lidar_data.json");
 
 
         System.out.println("-----------------------------Cameras------------------------------------");
-        Map<String, List<StampedDetectedObjects>> mapCamera = parseCameraData("example_input_2/camera_data.json");
+        Map<String, List<StampedDetectedObjects>> mapCamera = parseCameraData("example input/camera_data.json");
         List<StampedDetectedObjects> c1 = mapCamera.get("camera1");
         for (StampedDetectedObjects obj : c1 ){obj.printList();}
 
 
         System.out.println("-----------------------------Poses------------------------------------");
-        GPSIMU gi = parsePoseData("example_input_2/pose_data.json" );
+        GPSIMU gi = parsePoseData("example input/pose_data.json" );
 
 
         System.out.println("-------------------------------configFile----------------------------------");
-        List<Thread> threads = parseConfigData("example_input_2/configuration_file.json" , mapCamera , gi);
+        List<Thread> threads = parseConfigData("example input/configuration_file.json" , mapCamera , gi);
         for (Thread thread : threads){
             thread.start();
         }
