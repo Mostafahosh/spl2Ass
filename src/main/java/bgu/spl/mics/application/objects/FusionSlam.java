@@ -31,7 +31,11 @@ public class FusionSlam {
     public static FusionSlam getInstance(){
         return FusionSlamHolder.instance;
     }
+
+    //@PRE:none.
+    //@POST:landmarks.size() == @PRE(landmarks.size()) + 1
     public void addLandMark(LandMark landMark){landmarks.add(landMark);}
+
     public void addPose(Pose pose){poses.add(pose);}
     public List<LandMark> getLandMarks(){return landmarks;}
     public List<Pose> getPoses(){return poses;}
@@ -44,6 +48,7 @@ public class FusionSlam {
         }
         return null;
     }
+
     public int getTrackedEventsSize(){return trackedEvents.size();}
 
     public void addTrackedObjectEvent(TrackedObjectsEvent obj){
@@ -115,10 +120,59 @@ public class FusionSlam {
 
         CloudPoint globalPoint = new CloudPoint(xGlobal, yGlobal);
         return globalPoint;
-
-
-
     }
 
 
+    //@PRE:for(obj in trackedObjects): obj.time >= 1
+    //@POST:landmarks.size() >= @PRE(landmarks.size()) > 0
+    public void trackedObjectsToLandMarks(List<TrackedObject> trackedObjects) {
+
+        for (TrackedObject obj : trackedObjects) {
+            if(obj.getTime() < 1){
+                throw new IllegalArgumentException("time of tracked object must be greater than 0!");
+            }
+            Pose poseObj = getPose(obj.getTime());
+            List<CloudPoint> globalPointsList = new ArrayList<>();
+
+            for (CloudPoint localPoint : obj.getCoordinates()) {
+                double x = localPoint.getX();
+                double y = localPoint.getY();
+                CloudPoint globalPoint = mathCalc(x, y, poseObj);
+                globalPointsList.add(globalPoint);
+            }
+
+            //case1 - object was never detected before - checks if he is a landMark
+            if (!FusionSlam.getInstance().isObjectAvailable(obj)) {
+                LandMark landMark = new LandMark(obj.getId(), obj.getDescription(), globalPointsList);
+                addLandMark(landMark);
+                StatisticalFolder.getInstance().incrementNumberOfLandmarks();
+
+                //System.out.println("landMArk " + landMark.getId() + " created for the first Time! with Coordinates: " + "(List<LandMArk> size = " + fusionSlam.getLandMarks().size() + ")");
+            } else { //case2 - object was detected before - we do average
+                LandMark landMark = FusionSlam.getInstance().getLandMArk(obj.getId());
+                List<CloudPoint> gPoints = landMark.getList();
+
+                for (int i = 0; i < gPoints.size(); i += 1) {
+
+                    double newX = averageX(gPoints.get(i).getX(), globalPointsList.get(i).getX());
+                    double newY = averageY(gPoints.get(i).getY(), globalPointsList.get(i).getY());
+
+                    gPoints.get(i).setX(newX);
+                    gPoints.get(i).setY(newY);
+                }
+
+            }
+        }
+    }
+        public double averageX(double oldP , double newP){
+            return (oldP + newP)/2;
+        }
+
+        public double averageY(double oldP , double newP){
+            return (oldP + newP)/2;
+        }
+
+
+
 }
+

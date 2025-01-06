@@ -29,7 +29,10 @@ public class MessageBusImpl implements MessageBus {
 	private ConcurrentHashMap<MicroService , ConcurrentLinkedQueue<Class<? extends Broadcast>>> microBroad = new ConcurrentHashMap<>();//must be Blocking queue
 	private ConcurrentHashMap<Event , Future> event_Future = new ConcurrentHashMap<>();
 
-
+	/**
+	 * @PRE: None
+	 * @POST: instance != null
+	 */
 	//singleton DesignPattern - need to be changed
 	public static MessageBusImpl getInstance(){
 		if(instance==null){
@@ -38,7 +41,9 @@ public class MessageBusImpl implements MessageBus {
 		return instance;
 	}
 
-
+	/*
+	 * @PRE:m.isRegistered() == true
+	 * @POST:type.queue!=null && type.queue.size == @PRE(type.queue.size)+1 */
 	@Override
 	public <T> void subscribeEvent(Class<? extends Event<T>> type, MicroService m) {
 		eventMicro.putIfAbsent(type, new ConcurrentLinkedQueue<>()); //initialize a queue for Event type if not initialized before
@@ -59,33 +64,45 @@ public class MessageBusImpl implements MessageBus {
 		}
 	}
 
-
-		@Override
+	/**
+	 * @PRE: m.isRegistered() == true
+	 * @POST: type.queue != null && type.queue.size == @PRE(type.queue.size) + 1
+	 */
+	@Override
 	public void subscribeBroadcast(Class<? extends Broadcast> type, MicroService m) {
-			broadMicro.putIfAbsent(type, new ConcurrentLinkedQueue<>()); //initialize a queue for Broad type if not initialized before
-			microBroad.putIfAbsent(m, new ConcurrentLinkedQueue<Class<? extends Broadcast>>()); //initialize a queue for MicroService m if not initialized before
+		broadMicro.putIfAbsent(type, new ConcurrentLinkedQueue<>()); //initialize a queue for Broad type if not initialized before
+		microBroad.putIfAbsent(m, new ConcurrentLinkedQueue<Class<? extends Broadcast>>()); //initialize a queue for MicroService m if not initialized before
 
-			synchronized (m) {
-				ConcurrentLinkedQueue<Class<? extends Broadcast>>  queueOfBroad = microBroad.get(m);
-				if (queueOfBroad != null) {
-					queueOfBroad.add(type);
-				}
-			}
-
-			synchronized (type){
-				ConcurrentLinkedQueue<MicroService> Q = broadMicro.get(type);
-				if (Q != null){
-					Q.add(m);
-				}
+		synchronized (m) {
+			ConcurrentLinkedQueue<Class<? extends Broadcast>>  queueOfBroad = microBroad.get(m);
+			if (queueOfBroad != null) {
+				queueOfBroad.add(type);
 			}
 		}
 
+		synchronized (type){
+			ConcurrentLinkedQueue<MicroService> Q = broadMicro.get(type);
+			if (Q != null){
+				Q.add(m);
+				System.out.println("here im subscribed!");
+			}
+		}
+	}
+
+	/**
+	 * @PRE: event_Future.contains(e) == true
+	 * @POST: future.isResolved() == true
+	 */
 	@Override
 	public <T> void complete(Event<T> e, T result) {
 		Future<T> future = event_Future.get(e);
 		future.resolve(result);
 	}
 
+	/**
+	 * @PRE: broadMicro.containsKey(b.getClass()) == true
+	 * @POST: All registered microservices for b.getClass() have received the broadcast.
+	 */
 	@Override
 	public void sendBroadcast(Broadcast b) {
 		synchronized (b.getClass()) {
@@ -94,13 +111,13 @@ public class MessageBusImpl implements MessageBus {
 				//System.out.println("im in the if statement - MsgBus line 92");
 
 				ConcurrentLinkedQueue<MicroService> micro = broadMicro.get(b.getClass());
-				//System.out.println("the sizeOF TickBroadCAst Q is: " + micro.size());
+				System.out.println("the sizeOF TickBroadCAst Q is: " + micro.size());
 				for (MicroService microService : micro) {
-					//System.out.println("im " + microService.getName() + " subscribed to TickBroadCast");
+					System.out.println("im " + microService.getName() + " subscribed to "+b.getClass().getName());
 					LinkedBlockingQueue<Message> Q = micros.get(microService);
 
 					boolean sign = Q != null;
-					//System.out.println("is Q != null: " + sign);
+					System.out.println("is Q != null: " + sign);
 
 					if (Q != null) {
 						Q.add(b);
@@ -110,7 +127,10 @@ public class MessageBusImpl implements MessageBus {
 		}
 	}
 
-	
+	/**
+	 * @PRE: eventMicro.containsKey(e.getClass()) == true
+	 * @POST: event_Future.containsKey(e) == true && queue of assigned microservice contains e
+	 */
 	@Override
 	public <T> Future<T> sendEvent(Event<T> e) {
 		Future<T> future = new Future<>();
@@ -129,21 +149,29 @@ public class MessageBusImpl implements MessageBus {
 		currQofEvent.add(currMicro);
 		//
 
-synchronized (currMicro){
-		LinkedBlockingQueue<Message> Q = micros.get(currMicro);
-		if (Q == null) {
-			return null;
-		}
-		Q.add(e);}
+		synchronized (currMicro){
+			LinkedBlockingQueue<Message> Q = micros.get(currMicro);
+			if (Q == null) {
+				return null;
+			}
+			Q.add(e);}
 
-	return future;}
+		return future;}
 
+	/**
+	 * @PRE: !micros.containsKey(m)
+	 * @POST: micros.containsKey(m) == true && queue for m is initialized
+	 */
 	@Override
 	public void register(MicroService m) {
 		micros.putIfAbsent(m, new LinkedBlockingQueue<>());
 
 	}
 
+	/**
+	 * @PRE: micros.containsKey(m) == true
+	 * @POST: !micros.containsKey(m)
+	 */
 	@Override
 	public void unregister(MicroService m) {
 		if (micros.containsKey(m)) {
@@ -185,6 +213,10 @@ synchronized (currMicro){
 		}
 	}
 
+	/**
+	 * @PRE: micros.containsKey(m) == true
+	 * @POST: Message queue of m is processed and returned.
+	 */
 	@Override
 	public Message awaitMessage(MicroService m)  {
 //		if(!isRegistered(m)) throw new IllegalStateException();
@@ -214,13 +246,30 @@ synchronized (currMicro){
 		}
 		return msg;
 	}
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////-METHODS FOR UNIT TESTS-//////////////////////////////////////////
 	private boolean isRegistered(MicroService m){
 		return microEvent.get(m)!=null;
 	}
 
 
+	public ConcurrentLinkedQueue<MicroService> getQueueOfEvent(Class<? extends Event> type ){
+		return eventMicro.get(type);
 	}
+
+
+	public ConcurrentLinkedQueue<Class<? extends Broadcast>> getQueueMicroBroad(MicroService service) {
+		return microBroad.get(service);
+	}
+
+	public ConcurrentLinkedQueue<MicroService> getQueueOfBroad(Class<? extends Broadcast> type){
+		return broadMicro.get(type);
+	}
+
+	public LinkedBlockingQueue<Message> getQueueMicroAll(MicroService service) {
+		return micros.get(service);
+	}
+
+}
 
 	
 

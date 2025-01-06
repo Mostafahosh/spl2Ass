@@ -29,7 +29,6 @@ public class CameraService extends MicroService {
     private CyclicBarrier barrier;
     private int duration;
     int counter = 0;
-    StampedDetectedObjects lastObj;
     ////////////////
 
     /**
@@ -75,7 +74,7 @@ public class CameraService extends MicroService {
                             if (o.getId().equals("ERROR")){
                                 convertJavaCrash.getInstance().setError("Camera disconnected");
                                 convertJavaCrash.getInstance().setFaultySensor(camera.getCamera_key());
-                                convertJavaCrash.getInstance().setLastCamerasFrame(lastObj);
+                                convertJavaCrash.getInstance().setLastCamerasFrame(camera.getLastObj());
                                 GlobalCrashed.getInstance().setCrash(); //tell other sensors there is a crash!
                                 sendBroadcast(new CrashedBroadcast());
                                 terminate();
@@ -84,14 +83,14 @@ public class CameraService extends MicroService {
                         }
 
                         //no ERROR in the camera
-                        counter += 1;
+                        //counter += 1;
                         DetectObjectEvent event = new DetectObjectEvent(stampObj , camera.get_frequency());
 
                         //update the StatisticalFolder by num of DetectedObjects
                          StatisticalFolder.getInstance().incrementNumberOfDetectedObjects(stampObj.getSize());
 
                         //maintain the last object the camera detected
-                        lastObj = stampObj;
+                        camera.setLastObj(stampObj);
 
                         sendEvent(event);
                         //System.out.println(this.getName() + " sends DetectObjectEvent at time: " + GlobalTime.getInstance().getGlobalTime() + " with stamped objects: ");
@@ -103,7 +102,7 @@ public class CameraService extends MicroService {
             //if other sensor crashed - update last object detected by the camera
             else { //maybe not necessary - underStand why not going here or yes indeed interring the else
                 //System.out.println("im in the else CameraCrash");
-                convertJavaCrash.getInstance().setLastCamerasFrame(lastObj);
+                convertJavaCrash.getInstance().setLastCamerasFrame(camera.getLastObj());
                 terminate();}
             }
         );
@@ -116,7 +115,7 @@ public class CameraService extends MicroService {
 
         subscribeBroadcast(CrashedBroadcast.class, callback -> {
             //if other sensor crashed - update last object detected by the camera
-            convertJavaCrash.getInstance().setLastCamerasFrame(lastObj);
+            convertJavaCrash.getInstance().setLastCamerasFrame(camera.getLastObj());
             terminate();
         });
 

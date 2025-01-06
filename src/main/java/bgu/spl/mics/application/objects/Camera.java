@@ -21,6 +21,7 @@ public class Camera {
     String camera_key;
     STATUS status;
     List<StampedDetectedObjects> list;
+    private StampedDetectedObjects lastObj;//last object that camera detected
 
 
     public Camera(int id, int frequency) {
@@ -285,5 +286,12 @@ public class Camera {
             catch (IOException e) {
         e.printStackTrace();
     }
+    }
+
+    public StampedDetectedObjects getLastObj() {
+        return lastObj;
+    }
+    public void setLastObj(StampedDetectedObjects lastObj) {
+        this.lastObj = lastObj;
     }
 }

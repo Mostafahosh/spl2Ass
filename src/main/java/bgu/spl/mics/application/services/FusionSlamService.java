@@ -63,46 +63,14 @@ public class FusionSlamService extends MicroService {
 
                 if (fusionSlam.isAvailablePose(event.getTime())) {
                     List<TrackedObject> trackedObjects = event.getTrackedObjects();
-                    for (TrackedObject obj : trackedObjects) {
-                        Pose poseObj = fusionSlam.getPose(obj.getTime());
-                        List<CloudPoint> globalPointsList = new ArrayList<>();
-
-                        for (CloudPoint localPoint : obj.getCoordinates()) {
-                            double x = localPoint.getX();
-                            double y = localPoint.getY();
-                            CloudPoint globalPoint = fusionSlam.mathCalc(x, y, poseObj);
-                            globalPointsList.add(globalPoint);
-                        }
-
-                        //case1 - object was never detected before - checks if he is a landMark
-                        if (!FusionSlam.getInstance().isObjectAvailable(obj)){
-                            LandMark landMark = new LandMark(obj.getId(), obj.getDescription(), globalPointsList);
-                            fusionSlam.addLandMark(landMark);
-                            StatisticalFolder.getInstance().incrementNumberOfLandmarks();
-
-                            //System.out.println("landMArk " + landMark.getId() + " created for the first Time! with Coordinates: " + "(List<LandMArk> size = " + fusionSlam.getLandMarks().size() + ")");
-                        }
-                        else{ //case2 - object was detected before - we do average
-                            LandMark landMark = FusionSlam.getInstance().getLandMArk(obj.getId());
-                            List<CloudPoint> gPoints = landMark.getList();
-
-                            for (int i = 0 ; i < gPoints.size() ; i +=1){
-
-                                double newX = averageX(gPoints.get(i).getX() , globalPointsList.get(i).getX());
-                                double newY = averageY(gPoints.get(i).getY() , globalPointsList.get(i).getY());
-
-                                gPoints.get(i).setX(newX);
-                                gPoints.get(i).setY(newY);
-                            }
-
-                        }
-                        complete(event, true);
-                    }
+                    fusionSlam.trackedObjectsToLandMarks(trackedObjects);
+                    complete(event, true);
+                }
             }
             else {
                     fusionSlam.addTrackedObjectEvent(event);
                 }
-            }});
+        });
 
 
 //                List<TrackedObject> trackedObjects = event.getTrackedObjects();
@@ -200,41 +168,9 @@ public class FusionSlamService extends MicroService {
 
                             if (fusionSlam.isAvailablePose(time)) {
                                 List<TrackedObject> trackedObjects = t.getTrackedObjects();
-                                for (TrackedObject obj : trackedObjects) {
-                                    Pose poseObj = fusionSlam.getPose(obj.getTime());
-                                    List<CloudPoint> globalPointsList = new ArrayList<>();
-
-                                    for (CloudPoint localPoint : obj.getCoordinates()) {
-                                        double x = localPoint.getX();
-                                        double y = localPoint.getY();
-                                        CloudPoint globalPoint = fusionSlam.mathCalc(x, y, poseObj);
-                                        globalPointsList.add(globalPoint);
-                                    }
-
-                                    //case1 - object was never detected before - checks if he is a landMark
-                                    if (!FusionSlam.getInstance().isObjectAvailable(obj)){
-                                        LandMark landMark = new LandMark(obj.getId(), obj.getDescription(), globalPointsList);
-                                        fusionSlam.addLandMark(landMark);
-                                        StatisticalFolder.getInstance().incrementNumberOfLandmarks();
-
-                                        //System.out.println("landMArk " + landMark.getId() + " created for the first Time! with Coordinates: " + "(List<LandMArk> size = " + fusionSlam.getLandMarks().size() + ")");
-                                    }
-                                    else{ //case2 - object was detected before - we do average
-                                        LandMark landMark = FusionSlam.getInstance().getLandMArk(obj.getId());
-                                        List<CloudPoint> gPoints = landMark.getList();
-
-                                        for (int i = 0 ; i < gPoints.size() ; i +=1){
-
-                                            double newX = averageX(gPoints.get(i).getX() , globalPointsList.get(i).getX());
-                                            double newY = averageY(gPoints.get(i).getY() , globalPointsList.get(i).getY());
-
-                                            gPoints.get(i).setX(newX);
-                                            gPoints.get(i).setY(newY);
-                                        }
-
-                                    }
-                                    complete(event, true);
-                                }
+                                fusionSlam.trackedObjectsToLandMarks(trackedObjects);
+                                complete(event, true);
+                            }
 
                                 // Safely remove the event from the list after processing
                                 iterator.remove();
@@ -247,7 +183,7 @@ public class FusionSlamService extends MicroService {
 
 
 
-            } else {
+             else {
                 Statistics s = new Statistics();
                 s.setStatisticalFolder(StatisticalFolder.getInstance());
                 s.setLandMarks(fusionSlam.getLandMarks());
@@ -274,13 +210,13 @@ public class FusionSlamService extends MicroService {
         );
     }
 
-    public double averageX(double oldP , double newP){
-        return (oldP + newP)/2;
-    }
-
-    public double averageY(double oldP , double newP){
-        return (oldP + newP)/2;
-    }
+//    public double averageX(double oldP , double newP){
+//        return (oldP + newP)/2;
+//    }
+//
+//    public double averageY(double oldP , double newP){
+//        return (oldP + newP)/2;
+//    }
 }
 
 
