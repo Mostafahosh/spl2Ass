@@ -4,6 +4,7 @@ import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.JavaToJson.convertJavaCrash;
 import bgu.spl.mics.application.JavaToJson.Statistics;
 import bgu.spl.mics.application.Messages.Broadcasts.CrashedBroadcast;
+import bgu.spl.mics.application.Messages.Broadcasts.DoneBroadcast;
 import bgu.spl.mics.application.Messages.Broadcasts.TerminatedBroadcast;
 import bgu.spl.mics.application.Messages.Broadcasts.TickBroadcast;
 import bgu.spl.mics.application.Messages.Events.PoseEvent;
@@ -30,7 +31,7 @@ public class FusionSlamService extends MicroService {
     private int tick;
     private List<TrackedObjectsEvent> trackedEvents;
     private int duration;
-
+    private int counter;
     ///////////////
 
     /**
@@ -38,16 +39,19 @@ public class FusionSlamService extends MicroService {
      *
      * @param fusionSlam The FusionSLAM object responsible for managing the global map.
      */
-    public FusionSlamService(FusionSlam fusionSlam , int time  , int duration) {
+    public FusionSlamService(FusionSlam fusionSlam , int time  , int duration , int counter) {
         super("FusionSlam");
         this.fusionSlam =fusionSlam;
         this.tick = time;
         this.trackedEvents= Collections.synchronizedList(new ArrayList<>());
         this.duration = duration;
+        this.counter=counter;
     }
+
     private void addTrackedObjectEvent(TrackedObjectsEvent obj){
         trackedEvents.add(obj);
     }
+
     private List<TrackedObjectsEvent> getTrackedEventsList(){return trackedEvents;}
     /**
      * Initializes the FusionSlamService.
@@ -63,8 +67,6 @@ public class FusionSlamService extends MicroService {
 
             //insures no other service is crashed
             if (!GlobalCrashed.getInstance().getCrahs()) {
-
-
                 if (fusionSlam.isAvailablePose(event.getTime())) {
                     List<TrackedObject> trackedObjects = event.getTrackedObjects();
                     fusionSlam.trackedObjectsToLandMarks(trackedObjects);
@@ -180,6 +182,18 @@ public class FusionSlamService extends MicroService {
                         convertJavaCrash.getInstance().setStatistics(s);
                         terminate();
                     }
+        });
+        
+        subscribeBroadcast(DoneBroadcast.class, callback ->{
+            counter--;
+            if(counter==2){
+                GlobalCrashed.getInstance().setStop();
+                Statistics s = new Statistics();
+                s.setStatisticalFolder(StatisticalFolder.getInstance());
+                s.setLandMarks(fusionSlam.getLandMarks());
+                convertJavaCrash.getInstance().setStatistics(s);
+                terminate();
+            }
         });
 
 

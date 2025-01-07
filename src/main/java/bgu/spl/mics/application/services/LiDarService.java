@@ -4,7 +4,9 @@ import bgu.spl.mics.Callback;
 import bgu.spl.mics.Event;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.JavaToJson.convertJavaCrash;
+import bgu.spl.mics.application.Messages.Broadcasts.CameraDoneBroadcast;
 import bgu.spl.mics.application.Messages.Broadcasts.CrashedBroadcast;
+import bgu.spl.mics.application.Messages.Broadcasts.DoneBroadcast;
 import bgu.spl.mics.application.Messages.Broadcasts.TerminatedBroadcast;
 import bgu.spl.mics.application.Messages.Broadcasts.TickBroadcast;
 import bgu.spl.mics.application.Messages.Events.TrackedObjectsEvent;
@@ -37,6 +39,7 @@ public class LiDarService extends MicroService {
     private int duration;
     private List<TrackedObject> lastObj;
     List<TrackedObjectsEvent> lst;
+    private int counter;
     ////////////////
 
     /**
@@ -44,7 +47,7 @@ public class LiDarService extends MicroService {
      *
      * @param LiDarWorkerTracker A LiDAR Tracker worker object that this service will use to process data.
      */
-    public LiDarService(LiDarWorkerTracker LiDarWorkerTracker , int tick  , int duration) {
+    public LiDarService(LiDarWorkerTracker LiDarWorkerTracker , int tick  , int duration ,int counter) {
         super("Lidar" + LiDarWorkerTracker.getId());
         this.lidar = LiDarWorkerTracker;
         time = 0;
@@ -52,7 +55,7 @@ public class LiDarService extends MicroService {
         this.duration = duration;
         lastObj = new ArrayList<>();
         lst = new ArrayList<>();
-
+        this.counter=counter;
     }
 
     /**
@@ -64,6 +67,9 @@ public class LiDarService extends MicroService {
     protected void initialize() {
         System.out.println("lidar" + lidar.getId() + " is initialized with frequency = " + lidar.getFrequency());
 
+        subscribeBroadcast(CameraDoneBroadcast.class, callback -> {
+            counter--;
+        });
 
         subscribeEvent(DetectObjectEvent.class , event -> {
             lidar.clearList();
@@ -198,6 +204,11 @@ public class LiDarService extends MicroService {
                         t.print();
                         iterator.remove(); // Safely remove the current element from the list
                     }
+                    lastObj=t.getTrackedObjects();
+                }
+                if(counter==0){
+                    terminate();
+                    sendBroadcast(new DoneBroadcast());
                 }
             }
 

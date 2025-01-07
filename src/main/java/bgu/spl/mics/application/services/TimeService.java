@@ -2,6 +2,7 @@ package bgu.spl.mics.application.services;
 
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.JavaToJson.convertJava;
+import bgu.spl.mics.application.Messages.Broadcasts.DoneBroadcast;
 import bgu.spl.mics.application.Messages.Broadcasts.TerminatedBroadcast;
 import bgu.spl.mics.application.Messages.Broadcasts.TickBroadcast;
 import bgu.spl.mics.application.objects.GlobalCrashed;
@@ -47,9 +48,9 @@ public class TimeService extends MicroService {
         GlobalTime globalTime = GlobalTime.getInstance();
 
         try {
-            while (globalTime.getGlobalTime() < duration && !GlobalCrashed.getInstance().getCrahs()) { //if sensor crashed stop the run
+            while (globalTime.getGlobalTime() < duration && !GlobalCrashed.getInstance().getCrahs() && !GlobalCrashed.getInstance().getStop()) { //if sensor crashed stop the run
                 TickBroadcast t = new TickBroadcast();
-                globalTime.increaseGlobaltime(tickTime);
+                globalTime.increaseGlobaltime(1);
                 sendBroadcast(t);
                 System.out.println("BroadCastTick was sent at time: " + GlobalTime.getInstance().getGlobalTime());
 

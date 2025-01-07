@@ -151,15 +151,18 @@ public class FusionSlam {
             } else { //case2 - object was detected before - we do average
                 LandMark landMark = FusionSlam.getInstance().getLandMArk(obj.getId());
                 List<CloudPoint> gPoints = landMark.getList();
-
-                for (int i = 0; i < gPoints.size(); i += 1) {
+                int i;
+                for (i = 0; i < Math.min(gPoints.size(), globalPointsList.size()); i += 1) {
 
                     double newX = averageX(gPoints.get(i).getX(), globalPointsList.get(i).getX());
                     double newY = averageY(gPoints.get(i).getY(), globalPointsList.get(i).getY());
-
+                    
                     gPoints.get(i).setX(newX);
                     gPoints.get(i).setY(newY);
                 }
+                // for(int j=i;j<obj.getCoordinates().size();j++){
+                //     landMark.getList().add(obj.getCoordinates().get(j));
+                // }
 
             }
         }

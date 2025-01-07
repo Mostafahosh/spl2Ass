@@ -107,7 +107,7 @@ public static List<Thread> parseConfigData(String filepath , Map<String, List<St
         for (LiDarWorkerTracker l : lidars){
             LiDarWorkerTracker lidar = new LiDarWorkerTracker(l.getId() , l.getFrequency());
 
-            MicroService lidarService = new LiDarService(lidar , configuration.getTickTime()  , configuration.getDuration());
+            MicroService lidarService = new LiDarService(lidar , configuration.getTickTime()  , configuration.getDuration(),cameras.size());
             threads.add(new Thread(lidarService));
         }
 
@@ -126,7 +126,7 @@ public static List<Thread> parseConfigData(String filepath , Map<String, List<St
 
 
         //fusionSlam initialize
-        MicroService fusionService = new FusionSlamService(FusionSlam.getInstance() , configuration.getTickTime()  , configuration.getDuration());
+        MicroService fusionService = new FusionSlamService(FusionSlam.getInstance() , configuration.getTickTime()  , configuration.getDuration(),threads.size()+1);//+1 for FusionService
         threads.add(new Thread(fusionService));
     }
     catch (IOException e) {

@@ -2,7 +2,9 @@ package bgu.spl.mics.application.services;
 import bgu.spl.mics.Callback;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.JavaToJson.convertJavaCrash;
+import bgu.spl.mics.application.Messages.Broadcasts.CameraDoneBroadcast;
 import bgu.spl.mics.application.Messages.Broadcasts.CrashedBroadcast;
+import bgu.spl.mics.application.Messages.Broadcasts.DoneBroadcast;
 import bgu.spl.mics.application.Messages.Broadcasts.TerminatedBroadcast;
 import bgu.spl.mics.application.Messages.Broadcasts.TickBroadcast;
 import bgu.spl.mics.application.Messages.Events.DetectObjectEvent;
@@ -29,6 +31,7 @@ public class CameraService extends MicroService {
     private CyclicBarrier barrier;
     private int duration;
     int counter = 0;
+    private int limit;
     ////////////////
 
     /**
@@ -40,9 +43,8 @@ public class CameraService extends MicroService {
         super("camera " + camera.get_id());
         this.camera = camera;
         this.tick = tick;
-
         this.duration = duration;
-
+        limit=camera.getList().size();
     }
 
     /**
@@ -64,7 +66,7 @@ public class CameraService extends MicroService {
             //sends detected event at tick + camera frequency
                 for (StampedDetectedObjects stampObj : lst) {
                     if (GlobalTime.getInstance().getGlobalTime() == stampObj.getTime() + camera.get_frequency()) {
-
+                        limit--;
 
                         //insure no error in the camera
                         List<DetectedObject> objectsList = stampObj.getDetectedObjects();
@@ -98,6 +100,13 @@ public class CameraService extends MicroService {
                         break;
                     }
                 }
+                if(limit==0){
+                    sendBroadcast(new CameraDoneBroadcast());
+                    sendBroadcast(new DoneBroadcast());
+                    terminate();
+                    System.out.println(this.getName() + " Terminated!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                }
+                
             }
             //if other sensor crashed - update last object detected by the camera
             else { //maybe not necessary - underStand why not going here or yes indeed interring the else

@@ -3,6 +3,7 @@ package bgu.spl.mics.application.services;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.JavaToJson.convertJavaCrash;
 import bgu.spl.mics.application.Messages.Broadcasts.CrashedBroadcast;
+import bgu.spl.mics.application.Messages.Broadcasts.DoneBroadcast;
 import bgu.spl.mics.application.Messages.Broadcasts.TerminatedBroadcast;
 import bgu.spl.mics.application.Messages.Broadcasts.TickBroadcast;
 import bgu.spl.mics.application.Messages.Events.PoseEvent;
@@ -60,35 +61,37 @@ public class PoseService extends MicroService {
             //insures no other service is crashed
             if (!GlobalCrashed.getInstance().getCrahs()){
 
-                if (counter <= gpsimu.getLastTime()){
-            Pose pose;
-            pose = gpsimu.findPose(counter);
-            poses.add(pose);
-            PoseEvent event = new PoseEvent(pose);
-            counter +=1;
+                if (gpsimu.findPose(GlobalTime.getInstance().getGlobalTime())!=null){
+                    Pose pose;
+                    pose = gpsimu.findPose(GlobalTime.getInstance().getGlobalTime());
+                    poses.add(pose);
+                    PoseEvent event = new PoseEvent(pose);
+                    //counter +=1;
 
-            sendEvent(event);
-            //System.out.println("the Robot Position at time: " + GlobalTime.getInstance().getGlobalTime() + " is: " + pose.toString());
+                    sendEvent(event);
+                    //System.out.println("the Robot Position at time: " + GlobalTime.getInstance().getGlobalTime() + " is: " + pose.toString());
 
-            //tick++; //should here raise the tick / or in a general while loop in each iteration raise the tick ?
-           //latch.countDown();
-//            try {
-//                System.out.println(this.getName() + " is waiting at the barrier...");
-//                barrier.await();
-//                System.out.println(this.getName() + " has passed the barrier!");
-//            }
-//            catch (Exception e) {
-//                System.err.println(this.getName() + " encountered an error with the barrier: " + e.getMessage());
-//            }
+                    //tick++; //should here raise the tick / or in a general while loop in each iteration raise the tick ?
+                    //latch.countDown();
+                //try {
+                    // System.out.println(this.getName() + " is waiting at the barrier...");
+                    // barrier.await();
+                    // System.out.println(this.getName() + " has passed the barrier!");
+                //}
+                //catch (Exception e) {
+                    //System.err.println(this.getName() + " encountered an error with the barrier: " + e.getMessage());
+                //}
 
-        }
+                }
 
-
-
-        }
+            
             else {
-                convertJavaCrash.getInstance().setPoses(poses);
-        terminate();}
+                sendBroadcast(new DoneBroadcast());
+                //convertJavaCrash.getInstance().setPoses(poses);
+                terminate();
+            }
+        }
+
         });
 
         //should subscribe to crashBroadCast ?
